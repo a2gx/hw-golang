@@ -85,9 +85,9 @@ func TestRun(t *testing.T) {
 				// половина тасок с ошибками
 				if i%2 == 0 {
 					return nil
-				} else {
-					return err
 				}
+
+				return err
 			})
 		}
 

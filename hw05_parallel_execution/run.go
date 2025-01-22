@@ -2,6 +2,7 @@ package hw05parallelexecution
 
 import (
 	"errors"
+	"math"
 	"sync"
 	"sync/atomic"
 )
@@ -27,6 +28,9 @@ func Run(tasks []Task, n, m int) error {
 	var errCount int32
 
 	checkErrorLimit := func() bool {
+		if m > math.MaxInt32 {
+			m = math.MaxInt32 // литер ругается, тут можно кинуть ошибку
+		}
 		return m > 0 && atomic.LoadInt32(&errCount) >= int32(m)
 	}
 
