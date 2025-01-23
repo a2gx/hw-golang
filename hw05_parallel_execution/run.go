@@ -21,10 +21,6 @@ func Run(tasks []Task, n, m int) error {
 		return errors.New("n must be greater than 0")
 	}
 
-	if m > math.MaxInt32 {
-		m = math.MaxInt32 // литер ругается, тут можно кинуть ошибку
-	}
-
 	// канал с задачами
 	taskChan := make(chan Task)
 
