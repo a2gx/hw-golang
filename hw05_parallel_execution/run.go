@@ -26,12 +26,14 @@ func Run(tasks []Task, n, m int) error {
 
 	// обработка ошибок, при m <= 0 игнорируем ошибки в принципе
 	var errCount int32
+	var mInt32 int32
+
+	if m > math.MaxInt32 {
+		m = math.MaxInt32 // литер ругается, тут можно кинуть ошибку
+	}
 
 	checkErrorLimit := func() bool {
-		if m > math.MaxInt32 {
-			m = math.MaxInt32 // литер ругается, тут можно кинуть ошибку
-		}
-		return m > 0 && atomic.LoadInt32(&errCount) >= int32(m)
+		return m > 0 && atomic.LoadInt32(&errCount) >= mInt32
 	}
 
 	// запускаем воркеры
