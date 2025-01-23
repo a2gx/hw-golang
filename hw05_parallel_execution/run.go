@@ -21,6 +21,10 @@ func Run(tasks []Task, n, m int) error {
 		return errors.New("n must be greater than 0")
 	}
 
+	if m > math.MaxInt32 {
+		m = math.MaxInt32 // литер ругается, тут можно кинуть ошибку
+	}
+
 	// канал с задачами
 	taskChan := make(chan Task)
 
@@ -28,12 +32,14 @@ func Run(tasks []Task, n, m int) error {
 	var errCount int32
 	var mInt32 int32
 
-	if m > math.MaxInt32 {
-		m = math.MaxInt32 // литер ругается, тут можно кинуть ошибку
+	if m > 0 && m >= math.MaxInt32 {
+		mInt32 = math.MaxInt32 // литер ругается, тут можно кинуть ошибку
+	} else {
+		mInt32 = int32(m)
 	}
 
 	checkErrorLimit := func() bool {
-		return m > 0 && atomic.LoadInt32(&errCount) >= mInt32
+		return mInt32 > 0 && atomic.LoadInt32(&errCount) >= mInt32
 	}
 
 	// запускаем воркеры
