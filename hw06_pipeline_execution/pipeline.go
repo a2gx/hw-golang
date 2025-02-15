@@ -22,7 +22,6 @@ func process(in In, done In) Out {
 
 	go func() {
 		defer func() {
-			// читаем остатки горутин при резком сигнале <-done
 			for range in {
 				_ = struct{}{}
 			}
@@ -41,7 +40,6 @@ func process(in In, done In) Out {
 				select {
 				case out <- val:
 				case <-done:
-					// прерываем передачу, если уже закрыт done
 					return
 				}
 			}
