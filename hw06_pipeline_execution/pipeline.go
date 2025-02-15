@@ -9,6 +9,43 @@ type (
 type Stage func(in In) (out Out)
 
 func ExecutePipeline(in In, done In, stages ...Stage) Out {
-	// Place your code here.
-	return nil
+	for _, stage := range stages {
+		if stage != nil {
+			in = process(stage(in), done)
+		}
+	}
+	return in
+}
+
+func process(in In, done In) Out {
+	out := make(Bi, 1) // буфер для избежания блокировок
+
+	go func() {
+		defer func() {
+			for range in {
+				// читаем остатки горутин при резком сигнале <-done
+			}
+		}()
+		defer close(out)
+
+		for {
+			select {
+			case <-done:
+				return
+			case val, ok := <-in:
+				if !ok {
+					return
+				}
+
+				select {
+				case out <- val:
+				case <-done:
+					// прерываем передачу, если уже закрыт done
+					return
+				}
+			}
+		}
+	}()
+
+	return out
 }
