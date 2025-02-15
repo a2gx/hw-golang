@@ -22,8 +22,8 @@ func process(in In, done In) Out {
 
 	go func() {
 		defer func() {
+			// читаем остатки горутин при резком сигнале <-done
 			for range in {
-				// читаем остатки горутин при резком сигнале <-done
 				_ = struct{}{}
 			}
 		}()
