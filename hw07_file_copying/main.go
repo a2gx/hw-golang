@@ -24,5 +24,5 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println("done")
+	fmt.Println("Done")
 }
