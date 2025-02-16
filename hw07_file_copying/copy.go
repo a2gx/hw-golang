@@ -13,6 +13,7 @@ var (
 	ErrUnsupportedFile       = errors.New("unsupported file")
 	ErrCopyToTheSameFile     = errors.New("copy to the same file")
 	ErrOffsetExceedsFileSize = errors.New("offset exceeds file size")
+	ErrFiledToMovePointer    = errors.New("filed to move pointer")
 )
 
 func Copy(fromPath, toPath string, offset, limit int64) error {
@@ -47,9 +48,9 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 
 	// определяем сколько байт копировать с учетом смещения
 	// учитываем лимит если указан, иначе копируем до конца файла
-	sizeToCopy := fromFileInfo.Size() - offset
-	if limit > 0 && limit < sizeToCopy {
-		sizeToCopy = limit
+	size := fromFileInfo.Size() - offset
+	if limit > 0 && limit < size {
+		size = limit
 	}
 
 	// открываем исходный файл
@@ -76,13 +77,18 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 		}
 	}(toFile)
 
+	// смещаем указатель чтения файла
+	if _, err := fromFile.Seek(offset, io.SeekStart); err != nil {
+		return ErrFiledToMovePointer
+	}
+
 	// обертка для прогресс-бара
-	bar := pb.Full.Start64(sizeToCopy)
+	bar := pb.Full.Start64(size)
 	barReader := bar.NewProxyReader(fromFile)
 	defer bar.Finish()
 
 	// копируем данные
-	_, err = io.CopyN(toFile, barReader, sizeToCopy)
+	_, err = io.CopyN(toFile, barReader, size)
 	if err != nil && !errors.Is(err, io.EOF) {
 		return err
 	}
