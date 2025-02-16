@@ -16,8 +16,6 @@ var (
 )
 
 func Copy(fromPath, toPath string, offset, limit int64) error {
-	log.Printf("COPY from=%q to=%q offset=%d limit=%d", fromPath, toPath, offset, limit)
-
 	// проверяем исходный файл
 	fromFileInfo, err := os.Stat(fromPath)
 	if err != nil {
