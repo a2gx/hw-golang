@@ -14,6 +14,7 @@ var (
 	ErrCopyToTheSameFile     = errors.New("copy to the same file")
 	ErrOffsetExceedsFileSize = errors.New("offset exceeds file size")
 	ErrFiledToMovePointer    = errors.New("filed to move pointer")
+	ErrCopyAndRemove         = errors.New("error copy, unable to remove file")
 )
 
 func Copy(fromPath, toPath string, offset, limit int64) error {
@@ -90,6 +91,9 @@ func Copy(fromPath, toPath string, offset, limit int64) error {
 	// копируем данные
 	_, err = io.CopyN(toFile, barReader, size)
 	if err != nil && !errors.Is(err, io.EOF) {
+		if errRemove := os.Remove(toPath); errRemove != nil {
+			return ErrCopyAndRemove
+		}
 		return err
 	}
 
