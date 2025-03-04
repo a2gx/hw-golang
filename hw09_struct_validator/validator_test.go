@@ -42,10 +42,13 @@ func TestValidate(t *testing.T) {
 		expectedErr error
 	}{
 		{
-			// Place your code here.
+			in: App{
+				Version: "1.2.3.4",
+			},
+			expectedErr: ValidationErrors{
+				{Field: "Version", Err: fmt.Errorf("length must be exactly %d", 5)},
+			},
 		},
-		// ...
-		// Place your code here.
 	}
 
 	for i, tt := range tests {
@@ -53,8 +56,11 @@ func TestValidate(t *testing.T) {
 			tt := tt
 			t.Parallel()
 
-			// Place your code here.
-			_ = tt
+			err := Validate(tt.in)
+			if fmt.Sprintf("%v", err) != fmt.Sprintf("%v", tt.expectedErr) {
+				t.Errorf("wait: %v", tt.expectedErr)
+				t.Errorf("fact: %v", err)
+			}
 		})
 	}
 }
