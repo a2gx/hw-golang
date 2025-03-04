@@ -8,11 +8,6 @@ import (
 
 // RunCmd runs a command + arguments (cmd) with environment variables from env.
 func RunCmd(cmd []string, env Environment) (returnCode int) {
-	if len(cmd) == 0 {
-		log.Printf("error: command is empty\n")
-		return 1
-	}
-
 	// set environments
 	for key, val := range env {
 		if val.NeedRemove {
@@ -26,6 +21,11 @@ func RunCmd(cmd []string, env Environment) (returnCode int) {
 				return 1
 			}
 		}
+	}
+
+	if len(cmd) == 0 {
+		log.Printf("error: command is empty\n")
+		return 1
 	}
 
 	executable, err := exec.LookPath(cmd[0])
