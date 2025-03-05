@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 )
@@ -84,6 +85,63 @@ var mapRulesFn = map[string]func(field reflect.Value, value string) error{
 			}
 		}
 		return nil
+	},
+	"min": func(field reflect.Value, value string) error {
+		if field.Kind() == reflect.Int {
+			check, err := strconv.Atoi(value)
+			if err != nil {
+				return InternalError{err}
+			}
+			if field.Int() < int64(check) {
+				return fmt.Errorf("must be greater than %d", check)
+			}
+		}
+		return nil
+	},
+	"max": func(field reflect.Value, value string) error {
+		if field.Kind() == reflect.Int {
+			check, err := strconv.Atoi(value)
+			if err != nil {
+				return InternalError{err}
+			}
+			if field.Int() > int64(check) {
+				return fmt.Errorf("must be less than %d", check)
+			}
+
+		}
+		return nil
+	},
+	"regexp": func(field reflect.Value, value string) error {
+		if field.Kind() == reflect.String {
+			check, err := regexp.MatchString(value, field.String())
+			if err != nil {
+				return InternalError{err}
+			}
+			if !check {
+				return fmt.Errorf("must be a valid regular expression")
+			}
+		}
+		return nil
+	},
+	"in": func(field reflect.Value, value string) error {
+		values := strings.Split(value, ",")
+		switch field.Kind() {
+		case reflect.String:
+			for _, v := range values {
+				if field.String() == v {
+					return nil
+				}
+			}
+		case reflect.Int:
+			for _, v := range values {
+				if check, err := strconv.Atoi(v); err == nil && field.Int() == int64(check) {
+					return nil
+				}
+			}
+		default:
+			return InternalError{fmt.Errorf("field must be a string or an integer")}
+		}
+		return fmt.Errorf("must be one of %s", value)
 	},
 }
 
