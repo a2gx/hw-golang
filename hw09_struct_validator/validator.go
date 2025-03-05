@@ -61,7 +61,6 @@ func Validate(v interface{}) error {
 				})
 			}
 		}
-
 	}
 
 	if len(result) > 0 {
@@ -125,7 +124,7 @@ var mapRulesFn = map[string]func(field reflect.Value, value string) error{
 	},
 	"in": func(field reflect.Value, value string) error {
 		values := strings.Split(value, ",")
-		switch field.Kind() {
+		switch field.Kind() { //nolint:exhaustive
 		case reflect.String:
 			for _, v := range values {
 				if field.String() == v {
