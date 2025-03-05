@@ -50,7 +50,7 @@ func Validate(v interface{}) error {
 
 		rules := strings.Split(validateTag, "|")
 		for _, rule := range rules {
-			if err := validCheckField(fieldValue, rule); err != nil {
+			if err := checkingRules(fieldValue, rule); err != nil {
 				var internalError InternalError
 				if errors.As(err, &internalError) {
 					return err
@@ -144,30 +144,26 @@ var mapRulesFn = map[string]func(field reflect.Value, value string) error{
 	},
 }
 
-func validCheckField(field reflect.Value, rule string) error {
-	if field.Kind() == reflect.Slice {
-		for i := 0; i < field.Len(); i++ {
-			if err := validCheckRules(field.Index(i), rule); err != nil {
-				return err
-			}
-		}
-		return nil
-	}
-
-	return validCheckRules(field, rule)
-}
-
-func validCheckRules(field reflect.Value, rule string) error {
+func checkingRules(field reflect.Value, rule string) error {
 	parts := strings.SplitN(rule, ":", 2)
 	if len(parts) != 2 {
 		return InternalError{fmt.Errorf("invalid rule format: %s", rule)}
 	}
 
 	name, value := parts[0], parts[1]
-	rulesFn, ok := mapRulesFn[name]
+	ruleFn, ok := mapRulesFn[name]
 	if !ok {
 		return InternalError{fmt.Errorf("unknown validation rule: %s", name)}
 	}
 
-	return rulesFn(field, value)
+	if field.Kind() == reflect.Slice {
+		for i := 0; i < field.Len(); i++ {
+			if err := ruleFn(field.Index(i), value); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	return ruleFn(field, value)
 }
