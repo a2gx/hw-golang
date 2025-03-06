@@ -28,7 +28,7 @@ func ReadDir(dir string) (Environment, error) {
 
 	for _, entry := range entries {
 		if entry.IsDir() || strings.HasPrefix(entry.Name(), ".") || strings.Contains(entry.Name(), "=") {
-			log.Println("skip file", entry.Name())
+			log.Printf("Skipping %s\n", entry.Name())
 			continue
 		}
 
