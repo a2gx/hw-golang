@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,7 +27,8 @@ func ReadDir(dir string) (Environment, error) {
 	}
 
 	for _, entry := range entries {
-		if entry.IsDir() || strings.HasPrefix(entry.Name(), ".") {
+		if entry.IsDir() || strings.HasPrefix(entry.Name(), ".") || strings.Contains(entry.Name(), "=") {
+			log.Println("skip file", entry.Name())
 			continue
 		}
 
