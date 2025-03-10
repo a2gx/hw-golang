@@ -1,6 +1,6 @@
-module github.com/fixme_my_friend/hw11_telnet_client
+module github.com/alxbuylov/hw-golang/hw11_telnet_client
 
-go 1.22
+go 1.23
 
 require github.com/stretchr/testify v1.7.0
 
