@@ -7,7 +7,6 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 	"time"
 )
@@ -22,7 +21,6 @@ func main() {
 	}
 
 	address := net.JoinHostPort(args[0], args[1])
-
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 
 	client := NewTelnetClient(address, *timeout, os.Stdin, os.Stdout)
@@ -31,25 +29,21 @@ func main() {
 		log.Fatalf("connect failed: %v", err)
 	}
 
-	defer client.Close()
+	defer func() {
+		_ = client.Close()
+		cancel()
+	}()
 
-	var wg sync.WaitGroup
-	wg.Add(2)
-
-	running(&wg, client.Send, cancel)
-	running(&wg, client.Receive, cancel)
+	go running(client.Send, cancel)
+	go running(client.Receive, cancel)
 
 	<-ctx.Done()
 	log.Println("connection closed")
-	wg.Wait()
 }
 
-func running(wg *sync.WaitGroup, task func() error, cancel func()) {
-	go func() {
-		defer wg.Done()
-		if err := task(); err != nil {
-			log.Printf("task failed: %v", err)
-			cancel()
-		}
-	}()
+func running(task func() error, cancel func()) {
+	if err := task(); err != nil {
+		log.Printf("task failed: %v", err)
+	}
+	cancel()
 }
