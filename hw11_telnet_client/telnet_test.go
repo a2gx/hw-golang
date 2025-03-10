@@ -12,16 +12,10 @@ import (
 )
 
 func TestTelnetClient(t *testing.T) {
-	testingServer := func() net.Listener {
-		l, err := net.Listen("tcp", "127.0.0.1:")
-		if err != nil {
-			t.Fatal(err)
-		}
-		return l
-	}
-
 	t.Run("basic", func(t *testing.T) {
-		l := testingServer()
+		l, err := net.Listen("tcp", "127.0.0.1:")
+		require.NoError(t, err)
+		defer func() { require.NoError(t, l.Close()) }()
 
 		var wg sync.WaitGroup
 		wg.Add(2)
