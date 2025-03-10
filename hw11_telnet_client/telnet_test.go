@@ -12,10 +12,16 @@ import (
 )
 
 func TestTelnetClient(t *testing.T) {
-	t.Run("basic", func(t *testing.T) {
+	testingServer := func() net.Listener {
 		l, err := net.Listen("tcp", "127.0.0.1:")
-		require.NoError(t, err)
-		defer func() { require.NoError(t, l.Close()) }()
+		if err != nil {
+			t.Fatal(err)
+		}
+		return l
+	}
+
+	t.Run("basic", func(t *testing.T) {
+		l := testingServer()
 
 		var wg sync.WaitGroup
 		wg.Add(2)
@@ -61,5 +67,23 @@ func TestTelnetClient(t *testing.T) {
 		}()
 
 		wg.Wait()
+	})
+
+	t.Run("connect_failed", func(t *testing.T) {
+		client := NewTelnetClient("256.256.256.256:8080", time.Second, nil, nil)
+		err := client.Connect()
+		require.Error(t, err)
+	})
+
+	t.Run("send_disconnected", func(t *testing.T) {
+		client := &Client{}
+		err := client.Send()
+		require.Equal(t, err, io.EOF)
+	})
+
+	t.Run("receive_disconnected", func(t *testing.T) {
+		client := &Client{}
+		err := client.Receive()
+		require.Equal(t, err, io.EOF)
 	})
 }
