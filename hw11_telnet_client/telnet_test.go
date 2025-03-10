@@ -62,4 +62,22 @@ func TestTelnetClient(t *testing.T) {
 
 		wg.Wait()
 	})
+
+	t.Run("connect_failed", func(t *testing.T) {
+		client := NewTelnetClient("256.256.256.256:8080", time.Second, nil, nil)
+		err := client.Connect()
+		require.Error(t, err)
+	})
+
+	t.Run("send_disconnected", func(t *testing.T) {
+		client := &Client{}
+		err := client.Send()
+		require.Equal(t, err, io.EOF)
+	})
+
+	t.Run("receive_disconnected", func(t *testing.T) {
+		client := &Client{}
+		err := client.Receive()
+		require.Equal(t, err, io.EOF)
+	})
 }
