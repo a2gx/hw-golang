@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/config"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/logger"
 	internalhttp "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/server/http"
 	memorystorage "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/storage/memory"
@@ -23,13 +24,16 @@ func init() {
 func main() {
 	flag.Parse()
 
-	if flag.Arg(0) == "version" {
-		printVersion()
-		return
-	}
+	//if flag.Arg(0) == "version" {
+	//	printVersion()
+	//	return
+	//}
 
-	config := NewConfig()
-	logg := logger.New(config.Logger.Level)
+	conf, err := config.NewConfig(configFile)
+	if err != nil {
+		panic(err)
+	}
+	logg := logger.New(conf.Logger.Level)
 
 	storage := memorystorage.New()
 	calendar := app.New(logg, storage)
