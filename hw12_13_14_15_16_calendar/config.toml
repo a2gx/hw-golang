@@ -1,6 +1,0 @@
-server:
-  host: "localhost.toml"
-  port: "8080"
-
-logger:
-  level: "info"
