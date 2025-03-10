@@ -24,17 +24,14 @@ func main() {
 	address := net.JoinHostPort(args[0], args[1])
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer cancel()
 
 	client := NewTelnetClient(address, *timeout, os.Stdin, os.Stdout)
 	if err := client.Connect(); err != nil {
+		cancel()
 		log.Fatalf("connect failed: %v", err)
 	}
-	defer func() {
-		if err := client.Close(); err != nil {
-			log.Fatalf("close failed: %v", err)
-		}
-	}()
+
+	defer client.Close()
 
 	var wg sync.WaitGroup
 	wg.Add(2)
