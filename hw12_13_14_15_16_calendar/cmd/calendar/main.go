@@ -24,16 +24,13 @@ func init() {
 func main() {
 	flag.Parse()
 
-	//if flag.Arg(0) == "version" {
-	//	printVersion()
-	//	return
-	//}
-
-	conf, err := config.NewConfig(configFile)
-	if err != nil {
-		panic(err)
+	if flag.Arg(0) == "version" {
+		printVersion()
+		return
 	}
-	logg := logger.New(conf.Logger.Level)
+
+	conf := config.GetCalendarConfig()
+	logg := logger.New(conf.Log.Level)
 
 	storage := memorystorage.New()
 	calendar := app.New(logg, storage)
