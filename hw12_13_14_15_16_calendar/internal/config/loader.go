@@ -4,43 +4,61 @@ import (
 	"fmt"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"log"
-	"os"
+	"reflect"
 	"strings"
 )
 
-// Loader загружает конфигурацию в переданную структуру `conf` из файла и переменных окружения
-func loader[T any](conf *T, pathname string) error {
-	pflag.String("config", pathname, "config file path")
+// SetDefaultEnv - устанавливает default в Env из структуры
+func setDefaultEnv(prefix string, conf interface{}) {
+	valueOf, typeOf := reflect.ValueOf(conf), reflect.TypeOf(conf)
+
+	if valueOf.Kind() == reflect.Ptr {
+		valueOf = valueOf.Elem()
+		typeOf = typeOf.Elem()
+	}
+
+	for i := 0; i < typeOf.NumField(); i++ {
+		fieldValue, fieldType := valueOf.Field(i), typeOf.Field(i)
+		key := fieldType.Tag.Get("mapstructure")
+
+		// генерируем ключ, например: "database.host"
+		if prefix != "" {
+			key = prefix + "." + key
+		}
+
+		if fieldValue.Kind() == reflect.Struct {
+			setDefaultEnv(key, fieldValue.Interface())
+		} else {
+			viper.SetDefault(key, fieldValue.Interface())
+		}
+	}
+}
+
+func loader[T any](conf *T, defaultConfigPath string) error {
+	viper.Reset()
+
+	pflag.String("config", defaultConfigPath, "config file path")
 	pflag.Parse()
 
 	configPath := viper.GetString("config")
 	if configPath == "" {
-		configPath = pathname
+		configPath = defaultConfigPath // TODO need check
 	}
 
-	// checking file
-	if _, err := os.Stat(configPath); err == nil {
-		viper.SetConfigFile(configPath)
-		if err := viper.ReadInConfig(); err != nil {
-			log.Printf("warning: failed to read config file: %v\n", err)
-		} else {
-			log.Printf("success: loaded config from file: %s\n", configPath)
-		}
-	} else if !os.IsNotExist(err) {
-		log.Printf("warning: config file [%s] not exists\n", configPath)
-	}
-
-	// environments
+	viper.SetConfigFile(configPath)
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
+
+	// дефолт для переменных окружения
+	setDefaultEnv("", conf)
+
+	if err := viper.ReadInConfig(); err != nil {
+		// read successfully
+	}
 
 	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
 		return fmt.Errorf("failed to bind pflags: %w", err)
 	}
-	if err := viper.Unmarshal(&conf); err != nil {
-		return fmt.Errorf("failed to unmarshal config: %w", err)
-	}
 
-	return nil
+	return viper.Unmarshal(conf)
 }
