@@ -2,13 +2,15 @@ package config
 
 import (
 	"fmt"
-	"github.com/spf13/pflag"
-	"github.com/spf13/viper"
+	"log"
 	"reflect"
 	"strings"
+
+	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
 )
 
-// SetDefaultEnv - устанавливает default в Env из структуры
+// SetDefaultEnv устанавливает значения по умолчанию в Viper из структуры
 func setDefaultEnv(prefix string, conf interface{}) {
 	valueOf, typeOf := reflect.ValueOf(conf), reflect.TypeOf(conf)
 
@@ -23,7 +25,7 @@ func setDefaultEnv(prefix string, conf interface{}) {
 
 		// генерируем ключ, например: "database.host"
 		if prefix != "" {
-			key = prefix + "." + key
+			key = prefix + "." + strings.ToUpper(key)
 		}
 
 		if fieldValue.Kind() == reflect.Struct {
@@ -34,6 +36,7 @@ func setDefaultEnv(prefix string, conf interface{}) {
 	}
 }
 
+// Loader загружает конфигурацию в переданную структуру `conf` из файла и переменных окружения
 func loader[T any](conf *T, defaultConfigPath string) error {
 	viper.Reset()
 
@@ -42,23 +45,32 @@ func loader[T any](conf *T, defaultConfigPath string) error {
 
 	configPath := viper.GetString("config")
 	if configPath == "" {
-		configPath = defaultConfigPath // TODO need check
+		configPath = defaultConfigPath
 	}
 
 	viper.SetConfigFile(configPath)
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
-	// дефолт для переменных окружения
+	// устанавливаем значения по умолчанию из структуры
 	setDefaultEnv("", conf)
 
+	// пытаемся прочитать конфигурацию из файла
 	if err := viper.ReadInConfig(); err != nil {
-		// read successfully
+		if _, ok := err.(viper.ConfigFileNotFoundError); !ok {
+			log.Printf("warning: error reading config file: %v", err)
+		}
+	} else {
+		log.Printf("info: loaded config from file: %s", configPath)
 	}
 
 	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
-		return fmt.Errorf("failed to bind pflags: %w", err)
+		return fmt.Errorf("failed to bind command line flags: %w", err)
 	}
 
-	return viper.Unmarshal(conf)
+	if err := viper.Unmarshal(conf); err != nil {
+		return fmt.Errorf("failed to unmarshal config: %w", err)
+	}
+
+	return nil
 }
