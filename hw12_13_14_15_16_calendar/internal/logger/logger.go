@@ -5,7 +5,7 @@ import "fmt"
 type Logger struct { // TODO
 }
 
-func New(level string) *Logger {
+func GetLogger(level string) *Logger {
 	return &Logger{}
 }
 
@@ -14,6 +14,10 @@ func (l Logger) Info(msg string) {
 }
 
 func (l Logger) Error(msg string) {
+	// TODO
+}
+
+func (l Logger) Close() {
 	// TODO
 }
 

@@ -30,7 +30,8 @@ func main() {
 	}
 
 	conf := config.GetCalendarConfig()
-	logg := logger.New(conf.Log.Level)
+	logg := logger.GetLogger(conf.Log.Level)
+	defer logg.Close()
 
 	storage := memorystorage.New()
 	calendar := app.New(logg, storage)
