@@ -1,5 +1,10 @@
-[logger]
-level = "INFO"
+logger:
+  level: "debug"
 
-# TODO
-# ...
+server:
+  host: "localhost"
+  port: 8080
+
+database:
+  host: "database.host"
+  port: 5432

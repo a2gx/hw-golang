@@ -1,20 +1,32 @@
 package main
 
-// При желании конфигурацию можно вынести в internal/config.
-// Организация конфига в main принуждает нас сужать API компонентов, использовать
-// при их конструировании только необходимые параметры, а также уменьшает вероятность циклической зависимости.
+import (
+	pkgconfig "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/config"
+)
+
 type Config struct {
-	Logger LoggerConf
-	// TODO
+	Logger struct {
+		Level string `mapstructure:"level"`
+	} `mapstructure:"logger"`
+
+	Server struct {
+		Host string `mapstructure:"host"`
+		Port string `mapstructure:"port"`
+	} `mapstructure:"server"`
+
+	Database struct {
+		Host string `mapstructure:"host"`
+		Port string `mapstructure:"port"`
+	} `mapstructure:"database"`
 }
 
-type LoggerConf struct {
-	Level string
-	// TODO
-}
+func NewConfig() *Config {
+	var instance = &Config{}
+	var pathname = "./configs/config.yaml"
 
-func NewConfig() Config {
-	return Config{}
-}
+	if err := pkgconfig.LoadConfig(instance, pathname); err != nil {
+		panic(err) // Нет смысла продолжать без конфигурации
+	}
 
-// TODO
+	return instance
+}

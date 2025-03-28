@@ -8,17 +8,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/app"
-	"github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/logger"
-	internalhttp "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/server/http"
-	memorystorage "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/storage/memory"
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/logger"
+	internalhttp "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/server/http"
+	memorystorage "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/storage/memory"
 )
-
-var configFile string
-
-func init() {
-	flag.StringVar(&configFile, "config", "/etc/calendar/config.toml", "Path to configuration file")
-}
 
 func main() {
 	flag.Parse()
