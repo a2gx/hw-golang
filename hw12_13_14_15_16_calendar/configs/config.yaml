@@ -1,5 +1,6 @@
 logger:
   level: "debug"
+  filename: "logger.log"
 
 server:
   host: "localhost"

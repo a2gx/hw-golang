@@ -22,8 +22,17 @@ func main() {
 		return
 	}
 
-	config := NewConfig()
-	logg := logger.New(config.Logger.Level)
+	config, err := NewConfig()
+	if err != nil {
+		panic(err) // Нет смысла продолжать...
+	}
+
+	// дадим возможность записывать в файл
+	writer, err := os.OpenFile(config.Logger.Filename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		panic(err) // Нет смысла продолжать...
+	}
+	logg := logger.New(config.Logger.Level, writer)
 
 	storage := memorystorage.New()
 	calendar := app.New(logg, storage)

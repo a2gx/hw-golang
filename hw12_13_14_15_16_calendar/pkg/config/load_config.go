@@ -50,8 +50,6 @@ func LoadConfig[T any](conf *T, filepath string) error {
 		if !errors.As(err, &configFileNotFoundError) {
 			log.Printf("warning: error reading config file, %s", err)
 		}
-	} else {
-		log.Printf("info: loaded config from file: %s", filepath)
 	}
 
 	// привязываем флаги к конфигурации

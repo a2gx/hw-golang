@@ -6,7 +6,8 @@ import (
 
 type Config struct {
 	Logger struct {
-		Level string `mapstructure:"level"`
+		Level    string `mapstructure:"level"`
+		Filename string `mapstructure:"filename"`
 	} `mapstructure:"logger"`
 
 	Server struct {
@@ -20,13 +21,13 @@ type Config struct {
 	} `mapstructure:"database"`
 }
 
-func NewConfig() *Config {
+func NewConfig() (*Config, error) {
 	var instance = &Config{}
 	var pathname = "./configs/config.yaml"
 
 	if err := pkgconfig.LoadConfig(instance, pathname); err != nil {
-		panic(err) // Нет смысла продолжать без конфигурации
+		return nil, err
 	}
 
-	return instance
+	return instance, nil
 }
