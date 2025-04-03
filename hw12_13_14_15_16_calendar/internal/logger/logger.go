@@ -10,6 +10,12 @@ import (
 	"github.com/lmittmann/tint"
 )
 
+type Logger struct {
+	slog.Logger
+	closeFn closeFn
+	//Close   func()
+}
+
 type Options struct {
 	Handler  string
 	Filename string
@@ -21,11 +27,11 @@ type internalOptions struct {
 	Options
 }
 
-type WriterClose func()
+type closeFn func()
 
-func New(level string, opts ...Options) (*slog.Logger, WriterClose) {
-	options := parseOptions(opts) // а говорили в Go все аргументы обязательны XD
-	writer, c := createWriter(options)
+func New(level string, opts ...Options) *Logger {
+	options := parseOptions(opts)
+	writer, closeFn := createWriter(options)
 	handler := createHandler(writer, internalOptions{
 		Level:   parseLevel(level),
 		Options: options,
@@ -34,7 +40,23 @@ func New(level string, opts ...Options) (*slog.Logger, WriterClose) {
 	logger := slog.New(handler)
 	slog.SetDefault(logger)
 
-	return logger, c
+	return &Logger{
+		Logger:  *logger,
+		closeFn: closeFn,
+	}
+}
+
+func (l *Logger) Close() {
+	if l.closeFn != nil {
+		l.closeFn()
+	}
+}
+
+func parseOptions(opts []Options) Options {
+	if len(opts) == 1 {
+		return opts[0]
+	}
+	return Options{}
 }
 
 func parseLevel(lvl string) slog.Level {
@@ -48,29 +70,22 @@ func parseLevel(lvl string) slog.Level {
 	case "error":
 		return slog.LevelError
 	default:
-		log.Printf("Ooops... Uncnown log level '%s', defaulting to 'info'", lvl)
+		log.Printf("Ooops... Unknown log level '%s', defaulting to 'info'", lvl)
 		return slog.LevelInfo
 	}
 }
 
-func parseOptions(opts []Options) Options {
-	if len(opts) == 1 {
-		return opts[0]
-	}
-	return Options{}
-}
+func createWriter(o Options) (io.Writer, closeFn) {
+	var defaultCloseFn closeFn = func() {}
 
-func createWriter(opts Options) (io.Writer, WriterClose) {
-	var defaultClose WriterClose = func() {}
-
-	if len(opts.Filename) == 0 {
-		return os.Stdout, defaultClose
+	if len(o.Filename) == 0 {
+		return os.Stdout, defaultCloseFn
 	}
 
-	writer, err := os.OpenFile(opts.Filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	writer, err := os.OpenFile(o.Filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		log.Printf("Ooops... Failed to open log file: %v", err)
-		return os.Stdout, defaultClose
+		return os.Stdout, defaultCloseFn
 	}
 
 	return writer, func() {
@@ -81,6 +96,10 @@ func createWriter(opts Options) (io.Writer, WriterClose) {
 }
 
 func createHandler(w io.Writer, o internalOptions) slog.Handler {
+	if o.Handler == "" {
+		o.Handler = "text"
+	}
+
 	switch strings.ToLower(o.Handler) {
 	case "text_color":
 		return tint.NewHandler(w, &tint.Options{

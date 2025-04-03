@@ -1,20 +1,20 @@
 package logger
 
 import (
+	"bytes"
 	"log/slog"
 	"os"
 	"testing"
 )
 
-func TestLogger(t *testing.T) {
-	logg, closeFn := New("debug", Options{
-		Handler: "json",
-	})
-	defer closeFn()
-
+func TestNew(t *testing.T) {
+	logg := New("debug")
 	if logg == nil {
-		t.Fatal("logger is nil")
+		t.Error("Logger is nil")
+		return
 	}
+
+	logg.Close()
 }
 
 func TestParseLevel(t *testing.T) {
@@ -35,9 +35,61 @@ func TestParseLevel(t *testing.T) {
 	}
 }
 
-func TestCreateWriter(t *testing.T) {
-	w, _ := createWriter(Options{Handler: "text"})
-	if w != os.Stdout {
-		t.Errorf("createWriter({handler}) = %v; want os.Stdout", w)
+func TestCreateWriter_File(t *testing.T) {
+	tmpFile, err := os.CreateTemp("", "log_test_*.log")
+	if err != nil {
+		t.Errorf("Failed to create temporary file: %v", err)
+	}
+	tmpFile.Close()
+	defer os.Remove(tmpFile.Name())
+
+	opts := Options{Filename: tmpFile.Name()}
+	writer, closeFn := createWriter(opts)
+
+	if writer == nil {
+		t.Error("Writer is nil")
+	}
+
+	closeFn()
+}
+
+func TestCreateWriter_Stdout(t *testing.T) {
+	opts := Options{}
+	writer, closeFn := createWriter(opts)
+
+	if writer != os.Stdout {
+		t.Error("Writer is not stdout")
+	}
+	if closeFn == nil {
+		t.Error("Close function is nil")
+	} else {
+		closeFn()
+	}
+}
+
+func TestCreateHandler(t *testing.T) {
+	var buf bytes.Buffer
+
+	tests := []struct {
+		handlerType string
+	}{
+		{"text"},
+		{"json"},
+		{"text_color"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.handlerType, func(t *testing.T) {
+			opts := internalOptions{
+				Level: slog.LevelInfo,
+				Options: Options{
+					Handler: tt.handlerType,
+				},
+			}
+			handler := createHandler(&buf, opts)
+			if handler == nil {
+				t.Fatalf("handler should not be nil: %v", handler)
+			}
+		})
 	}
 }

@@ -26,12 +26,12 @@ func main() {
 	if err != nil {
 		panic(err) // Нет смысла продолжать...
 	}
-	logg, writerClose := logger.New(config.Logger.Level, logger.Options{
+	logg := logger.New(config.Logger.Level, logger.Options{
 		Handler:  config.Logger.Handler,
 		Filename: config.Logger.Filename,
 		Source:   config.Logger.Source,
 	})
-	defer writerClose()
+	defer logg.Close()
 
 	storage := memorystorage.New()
 	calendar := app.New(logg, storage)
