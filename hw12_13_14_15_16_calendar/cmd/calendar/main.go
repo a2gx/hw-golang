@@ -26,13 +26,12 @@ func main() {
 	if err != nil {
 		panic(err) // Нет смысла продолжать...
 	}
-
-	// дадим возможность записывать в файл
-	writer, err := os.OpenFile(config.Logger.Filename, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		panic(err) // Нет смысла продолжать...
-	}
-	logg := logger.New(config.Logger.Level, writer)
+	logg, writerClose := logger.New(config.Logger.Level, logger.Options{
+		Handler:  config.Logger.Handler,
+		Filename: config.Logger.Filename,
+		Source:   config.Logger.Source,
+	})
+	defer writerClose()
 
 	storage := memorystorage.New()
 	calendar := app.New(logg, storage)

@@ -1,6 +1,8 @@
 logger:
-  level: "debug"
-  filename: "logger.log"
+  level: "debug"        # example: "debug" | "info" | "warn" | "warning" | "error"
+  handler: "text_color" # example: "text_color" | "text" | "json"
+  filename: ""          # write to file if this option is not empty, example: "logfile.log"
+  source: true
 
 server:
   host: "localhost"

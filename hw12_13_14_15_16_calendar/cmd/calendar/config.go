@@ -7,7 +7,9 @@ import (
 type Config struct {
 	Logger struct {
 		Level    string `mapstructure:"level"`
+		Handler  string `mapstructure:"handler"`
 		Filename string `mapstructure:"filename"`
+		Source   bool   `mapstructure:"source"`
 	} `mapstructure:"logger"`
 
 	Server struct {
