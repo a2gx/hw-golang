@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
-	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/logger"
 	internalhttp "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/server/http"
 	memorystorage "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/storage/memory"
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
 )
 
 func main() {

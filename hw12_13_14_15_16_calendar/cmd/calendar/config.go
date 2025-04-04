@@ -28,8 +28,8 @@ type Config struct {
 }
 
 func NewConfig() (*Config, error) {
-	var instance = &Config{}
-	var pathname = "./configs/config.yaml"
+	instance := &Config{}
+	pathname := "./configs/config.yaml"
 
 	if err := pkgconfig.LoadConfig(instance, pathname); err != nil {
 		return nil, err

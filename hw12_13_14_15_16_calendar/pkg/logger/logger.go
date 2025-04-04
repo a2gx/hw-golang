@@ -13,7 +13,6 @@ import (
 type Logger struct {
 	slog.Logger
 	closeFn closeFn
-	//Close   func()
 }
 
 type Options struct {
@@ -82,7 +81,7 @@ func createWriter(o Options) (io.Writer, closeFn) {
 		return os.Stdout, defaultCloseFn
 	}
 
-	writer, err := os.OpenFile(o.Filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	writer, err := os.OpenFile(o.Filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
 		log.Printf("Ooops... Failed to open log file: %v", err)
 		return os.Stdout, defaultCloseFn
