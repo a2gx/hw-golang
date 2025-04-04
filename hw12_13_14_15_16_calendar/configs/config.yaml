@@ -8,6 +8,9 @@ server:
   host: "localhost"
   port: 8080
 
+storage:
+  source: "memory"      # example: "memory" | "sql"
+
 database:
   host: "database.host"
   port: 5432

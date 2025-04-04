@@ -17,6 +17,10 @@ type Config struct {
 		Port string `mapstructure:"port"`
 	} `mapstructure:"server"`
 
+	Storage struct {
+		Source string `mapstructure:"source"`
+	} `mapstructure:"storage"`
+
 	Database struct {
 		Host string `mapstructure:"host"`
 		Port string `mapstructure:"port"`
