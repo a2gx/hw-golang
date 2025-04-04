@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -10,7 +11,7 @@ import (
 
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
 	internalhttp "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/server/http"
-	memorystorage "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/storage/memory"
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/storage"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
 )
 
@@ -33,8 +34,14 @@ func main() {
 	})
 	defer logg.Close()
 
-	storage := memorystorage.New()
-	calendar := app.New(logg, storage)
+	store, err := storage.New(storage.Options{
+		StorageType: config.Storage.Source,
+	})
+	if err != nil {
+		log.Fatalf("failed to init storage: %v", err)
+	}
+
+	calendar := app.New(logg, store)
 
 	server := internalhttp.NewServer(logg, calendar)
 
