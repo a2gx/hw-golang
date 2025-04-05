@@ -2,6 +2,6 @@ package memory
 
 import "testing"
 
-func TestStorage(t *testing.T) {
+func TestMemoryStorage(t *testing.T) {
 	// TODO
 }

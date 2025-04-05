@@ -8,7 +8,7 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	logg := New("debug")
+	logg := New(Options{Level: "debug"})
 	if logg == nil {
 		t.Error("Logger is nil")
 		return

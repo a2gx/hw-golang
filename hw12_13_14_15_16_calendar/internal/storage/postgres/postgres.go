@@ -2,8 +2,9 @@ package postgres
 
 import (
 	"context"
-	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
 	"time"
+
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
 )
 
 type Storage struct{}

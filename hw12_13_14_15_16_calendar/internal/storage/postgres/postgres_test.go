@@ -2,6 +2,6 @@ package postgres
 
 import "testing"
 
-func TestStorage(t *testing.T) {
+func TestPostgresStorage(t *testing.T) {
 	// TODO
 }

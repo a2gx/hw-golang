@@ -23,17 +23,22 @@ func main() {
 		return
 	}
 
+	// initial Config
 	config, err := NewConfig()
 	if err != nil {
-		panic(err) // Нет смысла продолжать...
+		log.Fatal("filed to load config:", err)
 	}
-	logg := logger.New(config.Logger.Level, logger.Options{
+
+	// initial Logger
+	logg := logger.New(logger.Options{
+		Level:    config.Logger.Level,
 		Handler:  config.Logger.Handler,
 		Filename: config.Logger.Filename,
 		Source:   config.Logger.Source,
 	})
 	defer logg.Close()
 
+	// initial Storage
 	store, err := storage.New(storage.Options{
 		StorageType: config.Storage.Source,
 	})
@@ -41,8 +46,10 @@ func main() {
 		log.Fatalf("failed to init storage: %v", err)
 	}
 
+	// initial Business-logic
 	calendar := app.New(logg, store)
 
+	// initial Server
 	server := internalhttp.NewServer(logg, calendar)
 
 	ctx, cancel := signal.NotifyContext(context.Background(),

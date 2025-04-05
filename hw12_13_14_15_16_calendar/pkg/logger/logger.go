@@ -16,6 +16,7 @@ type Logger struct {
 }
 
 type Options struct {
+	Level    string
 	Handler  string
 	Filename string
 	Source   bool
@@ -28,12 +29,11 @@ type internalOptions struct {
 
 type closeFn func()
 
-func New(level string, opts ...Options) *Logger {
-	options := parseOptions(opts)
-	writer, closeFn := createWriter(options)
+func New(opts Options) *Logger {
+	writer, closeFn := createWriter(opts)
 	handler := createHandler(writer, internalOptions{
-		Level:   parseLevel(level),
-		Options: options,
+		Level:   parseLevel(opts.Level),
+		Options: opts,
 	})
 
 	logger := slog.New(handler)
@@ -49,13 +49,6 @@ func (l *Logger) Close() {
 	if l.closeFn != nil {
 		l.closeFn()
 	}
-}
-
-func parseOptions(opts []Options) Options {
-	if len(opts) == 1 {
-		return opts[0]
-	}
-	return Options{}
 }
 
 func parseLevel(lvl string) slog.Level {
@@ -77,7 +70,7 @@ func parseLevel(lvl string) slog.Level {
 func createWriter(o Options) (io.Writer, closeFn) {
 	var defaultCloseFn closeFn = func() {}
 
-	if len(o.Filename) == 0 {
+	if o.Filename == "" {
 		return os.Stdout, defaultCloseFn
 	}
 
