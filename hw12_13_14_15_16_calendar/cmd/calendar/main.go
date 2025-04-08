@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"flag"
-	serverhttp "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/server/http"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/server"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/storage"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
 )
@@ -39,6 +40,7 @@ func main() {
 	// Initialize Storage
 	store, err := storage.New(storage.Options{
 		StorageType: cfg.App.Storage,
+		Logg:        logg,
 	})
 	if err != nil {
 		log.Fatalf("failed to init storage: %v", err)
@@ -48,7 +50,20 @@ func main() {
 	calendar := app.New(logg, store)
 
 	// Initialize HttpServer
-	server := serverhttp.New(logg, calendar)
+	serv, err := server.New(server.Options{
+		ServerType: cfg.App.Server,
+
+		AddrHttp: fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port),
+		AddrGrpc: fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port),
+
+		Logg: logg,
+		App:  calendar,
+	})
+	if err != nil {
+		log.Fatalf("failed to init server: %v", err)
+	}
+
+	// Start server ...
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
@@ -59,14 +74,12 @@ func main() {
 		_, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 
-		if err := server.Stop(ctx); err != nil {
+		if err := serv.Stop(ctx); err != nil {
 			logg.Error("failed to stop http server: " + err.Error())
 		}
 	}()
 
-	logg.Info("calendar is running...")
-
-	if err := server.Start(ctx); err != nil {
+	if err := serv.Start(ctx); err != nil {
 		logg.Error("failed to start http server: " + err.Error())
 		cancel()
 		os.Exit(1)

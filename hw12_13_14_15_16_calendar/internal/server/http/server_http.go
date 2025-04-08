@@ -2,6 +2,7 @@ package serverhttp
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -15,7 +16,9 @@ type Server struct {
 	app        *app.App
 }
 
-func New(logg *logger.Logger, app *app.App) *Server {
+var _ app.Server = &Server{}
+
+func New(addr string, logg *logger.Logger, app *app.App) *Server {
 	mux := http.NewServeMux()
 	hFn := &Handler{
 		logg: logg,
@@ -26,7 +29,7 @@ func New(logg *logger.Logger, app *app.App) *Server {
 	mux.HandleFunc("/ping", hFn.GetPing)
 
 	httpserver := &http.Server{
-		Addr:         ":8080",
+		Addr:         addr,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
@@ -45,7 +48,7 @@ func New(logg *logger.Logger, app *app.App) *Server {
 }
 
 func (s *Server) Start(ctx context.Context) error {
-	s.logg.Info("start http server")
+	s.logg.Info("start server -> http", slog.String("Addr", s.httpserver.Addr))
 	errCh := make(chan error)
 
 	go func() {

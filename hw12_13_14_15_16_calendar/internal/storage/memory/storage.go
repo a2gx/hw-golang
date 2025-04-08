@@ -2,6 +2,7 @@ package memory
 
 import (
 	"context"
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
 	"sync"
 
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
@@ -14,7 +15,8 @@ type Storage struct {
 
 var _ app.Storage = &Storage{} // check the interface
 
-func New() *Storage {
+func New(logg *logger.Logger) *Storage {
+	logg.Info("start storage -> memory")
 	return &Storage{}
 }
 
