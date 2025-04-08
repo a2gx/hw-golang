@@ -5,21 +5,22 @@ import (
 )
 
 type Config struct {
+	App struct {
+		Storage string `toml:"storage"`
+		Server  string `toml:"server"`
+	}
+
 	Logger struct {
-		Level    string `mapstructure:"level"`
-		Handler  string `mapstructure:"handler"`
-		Filename string `mapstructure:"filename"`
-		Source   bool   `mapstructure:"source"`
+		Level       string `mapstructure:"level"`
+		HandlerType string `mapstructure:"handler_type"`
+		Filename    string `mapstructure:"filename"`
+		AddSource   bool   `mapstructure:"add_source"`
 	} `mapstructure:"logger"`
 
 	Server struct {
 		Host string `mapstructure:"host"`
 		Port string `mapstructure:"port"`
 	} `mapstructure:"server"`
-
-	Storage struct {
-		Source string `mapstructure:"source"`
-	} `mapstructure:"storage"`
 
 	Database struct {
 		Host string `mapstructure:"host"`

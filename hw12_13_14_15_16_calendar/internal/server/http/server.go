@@ -1,29 +1,29 @@
-package internalhttp
+package serverhttp
 
 import (
 	"context"
-	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
-	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
 	"net/http"
 	"time"
+
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
 )
 
 type Server struct {
 	httpserver *http.Server
+	logg       *logger.Logger
 	app        *app.App
-	logg       logger.Logger
 }
 
-func NewServer(logg logger.Logger, app *app.App) *Server {
+func New(logg *logger.Logger, app *app.App) *Server {
 	mux := http.NewServeMux()
-
-	handler := &Handler{
+	hFn := &Handler{
 		logg: logg,
 		app:  app,
 	}
 
-	// register handlers...
-	mux.HandleFunc("/ping", handler.GetPing)
+	// register handlers ...
+	mux.HandleFunc("/ping", hFn.GetPing)
 
 	httpserver := &http.Server{
 		Addr:         ":8080",
@@ -33,20 +33,19 @@ func NewServer(logg logger.Logger, app *app.App) *Server {
 
 		Handler: applyMiddleware(
 			mux,
-			LoggingMiddleware(logg),
+			LoggerMiddleware(*logg),
 		),
 	}
 
 	return &Server{
 		httpserver: httpserver,
-		app:        app,
 		logg:       logg,
+		app:        app,
 	}
 }
 
 func (s *Server) Start(ctx context.Context) error {
 	s.logg.Info("start http server")
-
 	errCh := make(chan error)
 
 	go func() {

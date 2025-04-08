@@ -85,10 +85,10 @@ func TestLoadConfig(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// очищаем флаги перед тестом
+			// reset flags before test
 			pflag.CommandLine = pflag.NewFlagSet(os.Args[0], pflag.ExitOnError)
 
-			// создаем файл
+			// create config file
 			var configFile string
 			if tt.config != "" {
 				tmpFile, err := os.CreateTemp("", "config-*.yaml")
@@ -100,7 +100,7 @@ func TestLoadConfig(t *testing.T) {
 				configFile = tmpFile.Name()
 			}
 
-			// переменные окружения
+			// environment variables
 			savedEnv := make(map[string]string)
 			for k, v := range tt.env {
 				if old, exists := os.LookupEnv(k); exists {
@@ -109,18 +109,18 @@ func TestLoadConfig(t *testing.T) {
 				os.Setenv(k, v)
 			}
 
-			// очистка после теста
+			// cleanup after test
 			defer func() {
 				for k := range tt.env {
 					if old, exists := savedEnv[k]; exists {
-						os.Setenv(k, old) // восстанавливаем прежнее значение
+						os.Setenv(k, old) // restore previous value
 					} else {
 						os.Unsetenv(k)
 					}
 				}
 			}()
 
-			// загружаем конфигурацию
+			// load configuration
 			var conf TestConfig
 			err := LoadConfig(&conf, configFile)
 
@@ -137,10 +137,10 @@ func TestLoadConfig(t *testing.T) {
 }
 
 func TestLoadConfigNestedStruct(t *testing.T) {
-	// очищаем флаги перед тестом
+	// reset flags before test
 	pflag.CommandLine = pflag.NewFlagSet(os.Args[0], pflag.ExitOnError)
 
-	// создаем файл
+	// create config file
 	tmpFile, err := os.CreateTemp("", "config-*.yaml")
 	require.NoError(t, err)
 	defer os.Remove(tmpFile.Name())
@@ -149,21 +149,21 @@ func TestLoadConfigNestedStruct(t *testing.T) {
 	require.NoError(t, err)
 
 	os.Setenv("SERVER_HOST", "server.env")
-	os.Setenv("SERVER_PORT", "9090") // Изменяем значение порта через ENV
+	os.Setenv("SERVER_PORT", "9090") // Change port value via ENV
 	os.Setenv("DATABASE_HOST", "database.env")
-	os.Setenv("DATABASE_PORT", "6000") // Аналогично для базы
+	os.Setenv("DATABASE_PORT", "6000") // Similarly for database
 
 	var conf TestConfigNested
 	err = LoadConfig[TestConfigNested](&conf, tmpFile.Name())
 
 	expected := TestConfigNested{
 		Server: TestConfigNestedData{
-			Host: "server.env", // Должно прийти из ENV
-			Port: 9090,         // Должно прийти из ENV
+			Host: "server.env", // Should come from ENV
+			Port: 9090,         // Should come from ENV
 		},
 		Database: TestConfigNestedData{
 			Host: "database.env",
-			Port: 6000, // Должно прийти из ENV
+			Port: 6000, // Should come from ENV
 		},
 	}
 

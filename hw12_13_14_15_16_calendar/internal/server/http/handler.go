@@ -1,13 +1,14 @@
-package internalhttp
+package serverhttp
 
 import (
+	"net/http"
+
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
-	"net/http"
 )
 
 type Handler struct {
-	logg logger.Logger
+	logg *logger.Logger
 	app  *app.App
 }
 

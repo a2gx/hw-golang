@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"flag"
+	serverhttp "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/server/http"
 	"log"
 	"os"
 	"os/signal"
@@ -10,56 +11,52 @@ import (
 	"time"
 
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
-	internalhttp "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/server/http"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/storage"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
 )
 
 func main() {
 	flag.Parse()
-
 	if flag.Arg(0) == "version" {
 		printVersion()
 		return
 	}
 
-	// initial Config
-	config, err := NewConfig()
+	// Initialize Configuration
+	cfg, err := NewConfig()
 	if err != nil {
-		log.Fatal("filed to load config:", err)
+		log.Fatalf("failed to init configuration: %v", err)
 	}
 
-	// initial Logger
+	// Initialize Logger
 	logg := logger.New(logger.Options{
-		Level:    config.Logger.Level,
-		Handler:  config.Logger.Handler,
-		Filename: config.Logger.Filename,
-		Source:   config.Logger.Source,
+		Level:       cfg.Logger.Level,
+		HandlerType: cfg.Logger.HandlerType,
+		Filename:    cfg.Logger.Filename,
+		AddSource:   cfg.Logger.AddSource,
 	})
-	defer logg.Close()
 
-	// initial Storage
+	// Initialize Storage
 	store, err := storage.New(storage.Options{
-		StorageType: config.Storage.Source,
+		StorageType: cfg.App.Storage,
 	})
 	if err != nil {
 		log.Fatalf("failed to init storage: %v", err)
 	}
 
-	// initial Business-logic
+	// Initialize Business-Logic
 	calendar := app.New(logg, store)
 
-	// initial Server
-	server := internalhttp.NewServer(*logg, calendar)
+	// Initialize HttpServer
+	server := serverhttp.New(logg, calendar)
 
-	ctx, cancel := signal.NotifyContext(context.Background(),
-		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
 
 	go func() {
 		<-ctx.Done()
 
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+		_, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 		defer cancel()
 
 		if err := server.Stop(ctx); err != nil {
@@ -72,6 +69,6 @@ func main() {
 	if err := server.Start(ctx); err != nil {
 		logg.Error("failed to start http server: " + err.Error())
 		cancel()
-		os.Exit(1) //nolint:gocritic
+		os.Exit(1)
 	}
 }

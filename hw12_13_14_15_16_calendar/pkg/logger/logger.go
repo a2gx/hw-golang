@@ -12,14 +12,14 @@ import (
 
 type Logger struct {
 	slog.Logger
-	closeFn closeFn
+	closeFn
 }
 
 type Options struct {
-	Level    string
-	Handler  string
-	Filename string
-	Source   bool
+	Level       string
+	HandlerType string
+	Filename    string
+	AddSource   bool
 }
 
 type internalOptions struct {
@@ -37,7 +37,7 @@ func New(opts Options) *Logger {
 	})
 
 	logger := slog.New(handler)
-	slog.SetDefault(logger)
+	slog.SetDefault(logger) // set logger globally
 
 	return &Logger{
 		Logger:  *logger,
@@ -62,57 +62,57 @@ func parseLevel(lvl string) slog.Level {
 	case "error":
 		return slog.LevelError
 	default:
-		log.Printf("Ooops... Unknown log level '%s', defaulting to 'info'", lvl)
+		log.Printf("Unknown log level '%s', defaulting to 'info'", lvl)
 		return slog.LevelInfo
 	}
 }
 
-func createWriter(o Options) (io.Writer, closeFn) {
-	var defaultCloseFn closeFn = func() {}
+func createWriter(opts Options) (io.Writer, closeFn) {
+	var defaultCloseFn = func() {}
 
-	if o.Filename == "" {
+	if opts.Filename == "" {
 		return os.Stdout, defaultCloseFn
 	}
 
-	writer, err := os.OpenFile(o.Filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	writer, err := os.OpenFile(opts.Filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
 	if err != nil {
-		log.Printf("Ooops... Failed to open log file: %v", err)
+		log.Printf("Failed to open log file: %v", err)
 		return os.Stdout, defaultCloseFn
 	}
 
 	return writer, func() {
 		if err := writer.Close(); err != nil {
-			log.Printf("Ooops... Failed to close log file: %v", err)
+			log.Printf("Failed to close log file: %v", err)
 		}
 	}
 }
 
-func createHandler(w io.Writer, o internalOptions) slog.Handler {
-	if o.Handler == "" {
-		o.Handler = "text"
+func createHandler(w io.Writer, opts internalOptions) slog.Handler {
+	if opts.HandlerType == "" {
+		opts.HandlerType = "text" // set default handler
 	}
 
-	switch strings.ToLower(o.Handler) {
+	switch strings.ToLower(opts.HandlerType) {
 	case "text_color":
 		return tint.NewHandler(w, &tint.Options{
-			Level:     o.Level,
-			AddSource: o.Source,
+			Level:     opts.Level,
+			AddSource: opts.AddSource,
 		})
 	case "text":
 		return slog.NewTextHandler(w, &slog.HandlerOptions{
-			Level:     o.Level,
-			AddSource: o.Source,
+			Level:     opts.Level,
+			AddSource: opts.AddSource,
 		})
 	case "json":
 		return slog.NewJSONHandler(w, &slog.HandlerOptions{
-			Level:     o.Level,
-			AddSource: o.Source,
+			Level:     opts.Level,
+			AddSource: opts.AddSource,
 		})
 	default:
-		log.Printf("Ooops... Unknown handler '%s', defaulting to 'text'", o.Handler)
+		log.Printf("Unknown handler '%s', defaulting to 'text'", opts.HandlerType)
 		return slog.NewTextHandler(w, &slog.HandlerOptions{
-			Level:     o.Level,
-			AddSource: o.Source,
+			Level:     opts.Level,
+			AddSource: opts.AddSource,
 		})
 	}
 }

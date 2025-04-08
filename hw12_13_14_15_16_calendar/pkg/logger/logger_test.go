@@ -8,13 +8,13 @@ import (
 )
 
 func TestNew(t *testing.T) {
-	logg := New(Options{Level: "debug"})
-	if logg == nil {
+	log := New(Options{Level: "debug"})
+	if log == nil {
 		t.Error("Logger is nil")
 		return
 	}
 
-	logg.Close()
+	log.Close()
 }
 
 func TestParseLevel(t *testing.T) {
@@ -83,7 +83,7 @@ func TestCreateHandler(t *testing.T) {
 			opts := internalOptions{
 				Level: slog.LevelInfo,
 				Options: Options{
-					Handler: tt.handlerType,
+					HandlerType: tt.handlerType,
 				},
 			}
 			handler := createHandler(&buf, opts)

@@ -11,8 +11,8 @@ import (
 	"github.com/spf13/viper"
 )
 
-func setDefaultEnv(prefix string, conf interface{}) {
-	valueOf, typeOf := reflect.ValueOf(conf), reflect.TypeOf(conf)
+func setDefaultEnv(prefix string, cfg interface{}) {
+	valueOf, typeOf := reflect.ValueOf(cfg), reflect.TypeOf(cfg)
 
 	if valueOf.Kind() == reflect.Ptr {
 		valueOf, typeOf = valueOf.Elem(), typeOf.Elem()
@@ -34,31 +34,31 @@ func setDefaultEnv(prefix string, conf interface{}) {
 	}
 }
 
-func LoadConfig[T any](conf *T, filepath string) error {
+func LoadConfig[T any](cfg *T, filepath string) error {
 	viper.Reset()
 
 	viper.SetConfigFile(filepath)
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
-	// устанавливаем пустые переменные окружения
-	setDefaultEnv("", conf)
+	// set default environment variables
+	setDefaultEnv("", cfg)
 
-	// пытаемся получить конфиг из файла
+	// try to read config from file
 	if err := viper.ReadInConfig(); err != nil {
 		var configFileNotFoundError viper.ConfigFileNotFoundError
 		if !errors.As(err, &configFileNotFoundError) {
-			log.Printf("warning: error reading config file, %s", err)
+			log.Printf("Cannot read the configuration from the file: %s", err)
 		}
 	}
 
-	// привязываем флаги к конфигурации
+	// bind command line flags to configuration
 	if err := viper.BindPFlags(pflag.CommandLine); err != nil {
 		return fmt.Errorf("failed to bind command line flags: %w", err)
 	}
 
-	// переносим конфиг в структуру
-	if err := viper.Unmarshal(conf); err != nil {
+	// unmarshal configuration into struct
+	if err := viper.Unmarshal(cfg); err != nil {
 		return fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 

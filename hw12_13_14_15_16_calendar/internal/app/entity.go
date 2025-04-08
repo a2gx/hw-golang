@@ -3,11 +3,11 @@ package app
 import "time"
 
 type Event struct {
-	Id          string
+	ID          string
 	Title       string
 	Datetime    time.Time
 	Duration    time.Duration
 	Description string
-	UserId      string
+	UserID      string
 	NotifyTime  time.Duration
 }

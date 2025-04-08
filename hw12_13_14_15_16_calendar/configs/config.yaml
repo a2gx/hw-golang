@@ -1,3 +1,7 @@
+app:
+  storage: "memory"     # example: "memory" | "sql"
+  server: "http"        # example: "http" | "grpc"
+
 logger:
   level: "debug"        # example: "debug" | "info" | "warn" | "warning" | "error"
   handler: "text_color" # example: "text_color" | "text" | "json"
@@ -7,9 +11,6 @@ logger:
 server:
   host: "localhost"
   port: 8080
-
-storage:
-  source: "memory"      # example: "memory" | "sql"
 
 database:
   host: "database.host"
