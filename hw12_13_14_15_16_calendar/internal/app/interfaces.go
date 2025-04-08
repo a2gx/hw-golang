@@ -15,7 +15,7 @@ type Storage interface {
 
 	ListEventsForDay(day time.Time) []Event
 	ListEventsForWeek(week time.Time) []Event
-	ListEventsForMonth(month time.Month) []Event
+	ListEventsForMonth(month time.Time) []Event
 }
 
 type Server interface {
