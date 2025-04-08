@@ -31,4 +31,17 @@ install-lint-deps:
 lint: install-lint-deps
 	golangci-lint run ./internal/... ./pkg/... ./cmd/...
 
-.PHONY: build run build-img run-img version test lint
+# Docker Compose commands
+dc-up:
+	docker-compose up -d
+
+dc-down:
+	docker-compose down
+
+dc-logs:
+	docker-compose logs -f
+
+dc-ps:
+	docker-compose ps
+
+.PHONY: build run build-img run-img version test lint dc-up dc-down dc-logs dc-ps
