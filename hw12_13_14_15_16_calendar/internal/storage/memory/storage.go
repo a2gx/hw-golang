@@ -25,6 +25,11 @@ func New(logg *logger.Logger) *Storage {
 	}
 }
 
+// Connect implements app.Storage.
+func (s *Storage) Connect(_ context.Context) error {
+	return nil
+}
+
 // Close implements app.Storage.
 func (s *Storage) Close(_ context.Context) error {
 	s.mu.Lock()
@@ -32,11 +37,6 @@ func (s *Storage) Close(_ context.Context) error {
 
 	s.events = make(map[string]app.Event)
 
-	return nil
-}
-
-// Connect implements app.Storage.
-func (s *Storage) Connect(_ context.Context) error {
 	return nil
 }
 

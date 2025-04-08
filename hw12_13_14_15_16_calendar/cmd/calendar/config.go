@@ -1,7 +1,9 @@
 package main
 
 import (
-	pkgconfig "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/config"
+	"flag"
+
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/config"
 )
 
 type Config struct {
@@ -28,11 +30,16 @@ type Config struct {
 	} `mapstructure:"database"`
 }
 
+var configFile string
+
+func init() {
+	flag.StringVar(&configFile, "config", "./configs/config.yaml", "Path to configuration file")
+}
+
 func NewConfig() (*Config, error) {
 	instance := &Config{}
-	pathname := "./configs/config.yaml"
 
-	if err := pkgconfig.LoadConfig(instance, pathname); err != nil {
+	if err := config.LoadConfig(instance, configFile); err != nil {
 		return nil, err
 	}
 
