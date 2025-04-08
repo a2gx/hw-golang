@@ -13,9 +13,9 @@ type Storage interface {
 	UpdateEvent(event Event) (Event, error)
 	DeleteEvent(event Event) error
 
-	ListEventsForDay(day time.Time) ([]Event, error)
-	ListEventsForWeek(week time.Time) ([]Event, error)
-	ListEventsForMonth(month time.Month) ([]Event, error)
+	ListEventsForDay(day time.Time) []Event
+	ListEventsForWeek(week time.Time) []Event
+	ListEventsForMonth(month time.Month) []Event
 }
 
 type Server interface {
