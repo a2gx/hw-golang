@@ -50,18 +50,13 @@ func main() {
 	calendar := app.New(logg, store)
 
 	// Initialize HttpServer
-	serv, err := server.New(server.Options{
+	srv, err := server.New(server.Options{
 		ServerType: cfg.App.Server,
-
-		AddrHttp: fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port),
-		AddrGrpc: fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port),
-
-		Logg: logg,
-		App:  calendar,
+		Logg:       logg,
+		App:        calendar,
+		AddrHttp:   fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port),
+		AddrGrpc:   fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port),
 	})
-	if err != nil {
-		log.Fatalf("failed to init server: %v", err)
-	}
 
 	// Start server ...
 
@@ -71,15 +66,17 @@ func main() {
 	go func() {
 		<-ctx.Done()
 
-		_, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 		defer cancel()
 
-		if err := serv.Stop(ctx); err != nil {
+		if err := srv.Stop(ctx); err != nil {
 			logg.Error("failed to stop http server: " + err.Error())
 		}
 	}()
 
-	if err := serv.Start(ctx); err != nil {
+	logg.Info("calendar is running...")
+
+	if err := srv.Start(ctx); err != nil {
 		logg.Error("failed to start http server: " + err.Error())
 		cancel()
 		os.Exit(1)

@@ -2,6 +2,8 @@ package serverhttp
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
@@ -11,24 +13,20 @@ import (
 )
 
 type Server struct {
-	httpserver *http.Server
-	logg       *logger.Logger
-	app        *app.App
+	srv  *http.Server
+	logg *logger.Logger
+	app  *app.App
 }
 
 var _ app.Server = &Server{}
 
 func New(addr string, logg *logger.Logger, app *app.App) *Server {
 	mux := http.NewServeMux()
-	hFn := &Handler{
-		logg: logg,
-		app:  app,
-	}
+	h := &Handler{logg, app}
 
-	// register handlers ...
-	mux.HandleFunc("/ping", hFn.GetPing)
+	mux.HandleFunc("/ping", h.GetPing)
 
-	httpserver := &http.Server{
+	srv := &http.Server{
 		Addr:         addr,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
@@ -36,36 +34,39 @@ func New(addr string, logg *logger.Logger, app *app.App) *Server {
 
 		Handler: applyMiddleware(
 			mux,
-			LoggerMiddleware(*logg),
+			loggingMiddleware,
 		),
 	}
 
-	return &Server{
-		httpserver: httpserver,
-		logg:       logg,
-		app:        app,
-	}
+	return &Server{srv, logg, app}
 }
 
 func (s *Server) Start(ctx context.Context) error {
-	s.logg.Info("start server -> http", slog.String("Addr", s.httpserver.Addr))
+	s.logg.Info("start http server", slog.String("Addr", s.srv.Addr))
 	errCh := make(chan error)
 
 	go func() {
-		if err := s.httpserver.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		if err := s.srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+
 			errCh <- err
 		}
 	}()
 
 	select {
 	case <-ctx.Done():
-		return s.Stop(context.Background())
+		fmt.Printf("\n1\n")
+		return nil
 	case err := <-errCh:
+		fmt.Printf("\n2\n")
 		return err
 	}
 }
 
 func (s *Server) Stop(ctx context.Context) error {
-	s.logg.Info("stop http server")
-	return s.httpserver.Shutdown(ctx)
+	if err := s.srv.Shutdown(ctx); err != nil {
+		return fmt.Errorf("shutdown http server error: %w", err)
+	}
+
+	s.logg.Info("http server stop")
+	return nil
 }

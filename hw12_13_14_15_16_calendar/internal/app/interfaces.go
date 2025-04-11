@@ -6,8 +6,8 @@ import (
 )
 
 type Storage interface {
-	Connect(ctx context.Context) error
-	Close(ctx context.Context) error
+	Connect() error
+	Close() error
 
 	CreateEvent(event Event) (Event, error)
 	UpdateEvent(event Event) (Event, error)
@@ -22,5 +22,3 @@ type Server interface {
 	Start(ctx context.Context) error
 	Stop(ctx context.Context) error
 }
-
-type Application interface{}
