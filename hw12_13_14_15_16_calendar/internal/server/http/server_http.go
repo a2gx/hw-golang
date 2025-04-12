@@ -47,26 +47,25 @@ func (s *Server) Start(ctx context.Context) error {
 
 	go func() {
 		if err := s.srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-
 			errCh <- err
 		}
 	}()
 
 	select {
 	case <-ctx.Done():
-		fmt.Printf("\n1\n")
 		return nil
 	case err := <-errCh:
-		fmt.Printf("\n2\n")
 		return err
 	}
 }
 
 func (s *Server) Stop(ctx context.Context) error {
+	fmt.Println()
+	s.logg.Info("stop http server")
+
 	if err := s.srv.Shutdown(ctx); err != nil {
 		return fmt.Errorf("shutdown http server error: %w", err)
 	}
 
-	s.logg.Info("http server stop")
 	return nil
 }
