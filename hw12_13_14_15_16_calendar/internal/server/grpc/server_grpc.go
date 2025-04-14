@@ -1,14 +1,16 @@
-package servergrpc
+package server_grpc
 
 import (
 	"context"
 	"fmt"
+	"log/slog"
+	"net"
+
+	"google.golang.org/grpc"
+
 	pb "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/api"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
-	"google.golang.org/grpc"
-	"log/slog"
-	"net"
 )
 
 type Server struct {
@@ -21,7 +23,7 @@ type Server struct {
 
 var _ app.Server = &Server{}
 
-func New(logg *logger.Logger, app *app.App, addr string) *Server {
+func New(addr string, logg *logger.Logger, app *app.App) *Server {
 	return &Server{
 		logg: logg,
 		app:  app,
@@ -48,7 +50,7 @@ func (s *Server) Start(_ context.Context) error {
 	return nil
 }
 
-func (s *Server) Stop(ctx context.Context) error {
+func (s *Server) Stop(_ context.Context) error {
 	if s.grpcServer != nil {
 		s.logg.Info("GRPC server is stopping")
 		s.grpcServer.GracefulStop()

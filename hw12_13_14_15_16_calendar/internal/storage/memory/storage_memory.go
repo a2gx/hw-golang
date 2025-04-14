@@ -1,11 +1,11 @@
-package storagememory
+package storage_memory
 
 import (
-	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
 	"sync"
 	"time"
-
+	
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
 )
 
 type Storage struct {

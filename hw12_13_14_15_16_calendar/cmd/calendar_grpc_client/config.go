@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/config"
 )
 
@@ -20,7 +19,6 @@ func init() {
 
 func NewConfig() (*Config, error) {
 	instance := &Config{}
-
 	if err := config.LoadConfig(instance, configFile); err != nil {
 		return nil, err
 	}

@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
-	servergrpc "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/server/grpc"
-	serverhttp "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/server/http"
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/server/grpc"
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/server/http"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
 )
 
@@ -19,68 +19,65 @@ type Options struct {
 }
 
 type MultiServer struct {
-	httpServer app.Server
-	grpcServer app.Server
-	logg       *logger.Logger
+	http app.Server
+	grpc app.Server
+	logg *logger.Logger
 }
 
 var _ app.Server = &MultiServer{}
 
 func New(opts Options) (app.Server, error) {
-	srv := &MultiServer{
-		logg: opts.Logg,
-	}
+	srv := &MultiServer{}
 
 	switch opts.ServerType {
 	case "http":
-		srv.httpServer = serverhttp.New(opts.Logg, opts.App, opts.HttpAddr)
+		srv.http = server_http.New(opts.HttpAddr, opts.Logg, opts.App)
 	case "grpc":
-		srv.grpcServer = servergrpc.New(opts.Logg, opts.App, opts.GrpcAddr)
+		srv.grpc = server_grpc.New(opts.GrpcAddr, opts.Logg, opts.App)
 	case "both":
-		srv.httpServer = serverhttp.New(opts.Logg, opts.App, opts.HttpAddr)
-		srv.grpcServer = servergrpc.New(opts.Logg, opts.App, opts.GrpcAddr)
+		srv.http = server_http.New(opts.HttpAddr, opts.Logg, opts.App)
+		srv.grpc = server_grpc.New(opts.GrpcAddr, opts.Logg, opts.App)
+	default:
+		return nil, fmt.Errorf("unknown server type: %s", opts.ServerType)
 	}
 
 	return srv, nil
 }
 
 func (s *MultiServer) Start(ctx context.Context) error {
-	errChan := make(chan error, 2)
+	errCh := make(chan error, 2)
 
-	if s.httpServer != nil {
+	if s.http != nil {
 		go func() {
-			if err := s.httpServer.Start(ctx); err != nil {
-				errChan <- fmt.Errorf("failed to start http server: %w", err)
+			if err := s.http.Start(ctx); err != nil {
+				errCh <- fmt.Errorf("failed to start http server: %w", err)
+			}
+		}()
+	}
+	if s.grpc != nil {
+		go func() {
+			if err := s.grpc.Start(ctx); err != nil {
+				errCh <- fmt.Errorf("failed to start grpc server: %w", err)
 			}
 		}()
 	}
 
-	if s.grpcServer != nil {
-		go func() {
-			if err := s.grpcServer.Start(ctx); err != nil {
-				errChan <- fmt.Errorf("failed to start grpc server: %w", err)
-			}
-		}()
-	}
-
-	// Ждем либо ошибку, либо завершение контекста
 	select {
-	case err := <-errChan:
+	case err := <-errCh:
 		return err
 	case <-ctx.Done():
-		return ctx.Err()
+		return nil
 	}
 }
 
 func (s *MultiServer) Stop(ctx context.Context) error {
-	if s.httpServer != nil {
-		if err := s.httpServer.Stop(ctx); err != nil {
+	if s.http != nil {
+		if err := s.http.Stop(ctx); err != nil {
 			s.logg.Error("failed to stop http server: " + err.Error())
 		}
 	}
-
-	if s.grpcServer != nil {
-		if err := s.grpcServer.Stop(ctx); err != nil {
+	if s.grpc != nil {
+		if err := s.grpc.Stop(ctx); err != nil {
 			s.logg.Error("failed to stop grpc server: " + err.Error())
 		}
 	}

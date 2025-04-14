@@ -3,15 +3,16 @@ package main
 import (
 	"context"
 	"flag"
-	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
-	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/server"
-	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/storage"
-	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/server"
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/storage"
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
 )
 
 func main() {
@@ -29,10 +30,10 @@ func main() {
 
 	// Initialize Logger
 	logg := logger.New(logger.Options{
-		Level:       cfg.Logger.Level,
-		HandlerType: cfg.Logger.HandlerType,
-		Filename:    cfg.Logger.Filename,
-		AddSource:   cfg.Logger.AddSource,
+		Level:     cfg.Logger.Level,
+		Handler:   cfg.Logger.Handler,
+		Filename:  cfg.Logger.Filename,
+		AddSource: cfg.Logger.AddSource,
 	})
 
 	// Initialize Storage
@@ -44,10 +45,10 @@ func main() {
 		log.Fatalf("failed to init storage: %v", err)
 	}
 
-	// Initialize Business-Logic
+	// Initialize Repository
 	calendar := app.New(logg, store)
 
-	// Initialize HttpServer
+	// Initialize Server
 	srv, err := server.New(server.Options{
 		ServerType: cfg.App.Server,
 		HttpAddr:   cfg.Server.HttpAddr,

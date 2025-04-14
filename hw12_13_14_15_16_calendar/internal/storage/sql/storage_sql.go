@@ -1,4 +1,4 @@
-package storagepostgres
+package storage_sql
 
 import (
 	"time"

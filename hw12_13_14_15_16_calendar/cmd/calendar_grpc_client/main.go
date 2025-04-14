@@ -3,12 +3,13 @@ package main
 import (
 	"context"
 	"log"
+	"log/slog"
 	"time"
-
-	pb "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/api"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+
+	pb "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/api"
 )
 
 func main() {
@@ -27,10 +28,10 @@ func main() {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
+	// CreateEvent
 	if r, err := c.CreateEvent(ctx, &pb.CreateEventRequest{}); err != nil {
-		log.Fatalf("could not greet: %v", err)
+		slog.Error("CreateEvent failed: " + err.Error())
 	} else {
-		log.Printf("Result: %s", r.String())
+		slog.Info("CreateEvent success: " + r.String())
 	}
-
 }

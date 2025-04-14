@@ -2,32 +2,26 @@ package main
 
 import (
 	"flag"
-
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/config"
 )
 
 type Config struct {
 	App struct {
-		Storage string `toml:"storage"`
-		Server  string `toml:"server"`
-	}
+		Storage string `mapstructure:"storage"`
+		Server  string `mapstructure:"server"`
+	} `mapstructure:"app"`
 
 	Logger struct {
-		Level       string `mapstructure:"level"`
-		HandlerType string `mapstructure:"handler_type"`
-		Filename    string `mapstructure:"filename"`
-		AddSource   bool   `mapstructure:"add_source"`
+		Level     string `mapstructure:"level"`
+		Handler   string `mapstructure:"handler"`
+		Filename  string `mapstructure:"filename"`
+		AddSource bool   `mapstructure:"add_source"`
 	} `mapstructure:"logger"`
 
 	Server struct {
 		HttpAddr string `mapstructure:"http_addr"`
 		GrpcAddr string `mapstructure:"grpc_addr"`
 	} `mapstructure:"server"`
-
-	Database struct {
-		Host string `mapstructure:"host"`
-		Port string `mapstructure:"port"`
-	} `mapstructure:"database"`
 }
 
 var configFile string
@@ -38,7 +32,6 @@ func init() {
 
 func NewConfig() (*Config, error) {
 	instance := &Config{}
-
 	if err := config.LoadConfig(instance, configFile); err != nil {
 		return nil, err
 	}

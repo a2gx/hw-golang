@@ -1,4 +1,4 @@
-package serverhttp
+package server_http
 
 import (
 	"context"
@@ -20,7 +20,7 @@ type Server struct {
 
 var _ app.Server = &Server{}
 
-func New(logg *logger.Logger, app *app.App, addr string) *Server {
+func New(addr string, logg *logger.Logger, app *app.App) *Server {
 	mux := http.NewServeMux()
 	h := &Handler{logg, app}
 
@@ -46,16 +46,23 @@ func (s *Server) Start(ctx context.Context) error {
 	errCh := make(chan error)
 
 	go func() {
-		if err := s.srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		err := s.srv.ListenAndServe()
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
 			errCh <- err
 		}
+
+		<-ctx.Done()
+
+		//if err := s.srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		//	errCh <- err
+		//}
 	}()
 
 	select {
-	case <-ctx.Done():
-		return nil
 	case err := <-errCh:
 		return err
+	case <-ctx.Done():
+		return nil
 	}
 }
 

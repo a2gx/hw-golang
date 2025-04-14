@@ -1,20 +1,50 @@
 package app
 
 import (
-	"context"
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
+	"time"
 )
 
-type App struct { // TODO
+type App struct {
+	logg  *logger.Logger
+	store Storage
 }
 
-func New(logger any, storage Storage) *App {
-	return &App{}
+var _ Application = &App{} //
+
+func New(logg *logger.Logger, store Storage) *App {
+	return &App{
+		logg:  logg,
+		store: store,
+	}
 }
 
-func (a *App) CreateEvent(ctx context.Context, id, title string) error {
-	// TODO
-	return nil
-	// return a.storage.CreateEvent(storage.Event{ID: id, Title: title})
+func (a *App) CreateEvent(event Event) (Event, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
-// TODO
+func (a *App) UpdateEvent(event Event) (Event, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *App) DeleteEvent(event Event) error {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *App) ListEventsForDay(day time.Time) []Event {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *App) ListEventsForWeek(week time.Time) []Event {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (a *App) ListEventsForMonth(month time.Time) []Event {
+	//TODO implement me
+	panic("implement me")
+}

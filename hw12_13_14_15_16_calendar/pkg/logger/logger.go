@@ -16,10 +16,10 @@ type Logger struct {
 }
 
 type Options struct {
-	Level       string
-	HandlerType string
-	Filename    string
-	AddSource   bool
+	Level     string
+	Handler   string
+	Filename  string
+	AddSource bool
 }
 
 type internalOptions struct {
@@ -88,11 +88,11 @@ func createWriter(opts Options) (io.Writer, closeFn) {
 }
 
 func createHandler(w io.Writer, opts internalOptions) slog.Handler {
-	if opts.HandlerType == "" {
-		opts.HandlerType = "text" // set default handler
+	if opts.Handler == "" {
+		opts.Handler = "text" // set default handler
 	}
 
-	switch strings.ToLower(opts.HandlerType) {
+	switch strings.ToLower(opts.Handler) {
 	case "text_color":
 		return tint.NewHandler(w, &tint.Options{
 			Level:     opts.Level,
@@ -109,7 +109,7 @@ func createHandler(w io.Writer, opts internalOptions) slog.Handler {
 			AddSource: opts.AddSource,
 		})
 	default:
-		log.Printf("Unknown handler '%s', defaulting to 'text'", opts.HandlerType)
+		log.Printf("Unknown handler '%s', defaulting to 'text'", opts.Handler)
 		return slog.NewTextHandler(w, &slog.HandlerOptions{
 			Level:     opts.Level,
 			AddSource: opts.AddSource,
