@@ -3,17 +3,15 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/server"
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/storage"
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
-
-	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
-	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/server"
-	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/storage"
-	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
 )
 
 func main() {
@@ -52,33 +50,33 @@ func main() {
 	// Initialize HttpServer
 	srv, err := server.New(server.Options{
 		ServerType: cfg.App.Server,
+		HttpAddr:   cfg.Server.HttpAddr,
+		GrpcAddr:   cfg.Server.GrpcAddr,
 		Logg:       logg,
 		App:        calendar,
-		AddrHttp:   fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port),
-		AddrGrpc:   fmt.Sprintf("%s:%s", cfg.Server.Host, cfg.Server.Port),
 	})
+	if err != nil {
+		log.Fatalf("failed to init server: %v", err)
+	}
 
 	// Start server ...
 
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
 
-	go func() {
-		<-ctx.Done()
-
-		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
-		defer cancel()
-
-		if err := srv.Stop(ctx); err != nil {
-			logg.Error("failed to stop http server: " + err.Error())
-		}
-	}()
-
 	logg.Info("calendar is running...")
 
-	if err := srv.Start(ctx); err != nil {
-		logg.Error("failed to start http server: " + err.Error())
-		cancel()
+	if err := srv.Start(context.Background()); err != nil {
+		logg.Error("failed to start server: " + err.Error())
 		os.Exit(1)
+	}
+
+	<-ctx.Done()
+
+	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Second*3)
+	defer shutdownCancel()
+
+	if err := srv.Stop(shutdownCtx); err != nil {
+		logg.Error("failed to stop server: " + err.Error())
 	}
 }

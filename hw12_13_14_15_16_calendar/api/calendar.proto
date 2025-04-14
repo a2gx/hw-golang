@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package grpcapi;
+
+option go_package = "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/api;calendar";
+
+service Calendar {
+  rpc CreateEvent(CreateEventRequest) returns (CreateEventReply) {}
+  //  rpc UpdateEvent(UpdateEventRequest) returns (UpdateEventReply) {}
+  //  rpc DeleteEvent(DeleteEventRequest) returns (DeleteEventReply) {}
+
+}
+
+message Event {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string user_id = 4;
+  string start_time = 5;
+  string end_time = 6;
+  string notify_time = 7;
+}
+
+// CreateEvent
+message CreateEventRequest {}
+message CreateEventReply {}
+
+/*
+// UpdateEvent
+message UpdateEventRequest {}
+message UpdateEventReply {}
+
+// DeleteEvent
+message DeleteEventRequest {}
+message DeleteEventReply {}
+
+// ListEventsForDay
+message ListEventsForDayRequest {}
+message ListEventsForDayReply {}
+
+// ListEventsForWeek
+message ListEventsForWeekRequest {}
+message ListEventsForWeekReply {}
+
+// ListEventsForMonth
+message ListEventsForMonthRequest {}
+message ListEventsForMonthReply {}
+*/

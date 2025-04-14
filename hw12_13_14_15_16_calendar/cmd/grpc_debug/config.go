@@ -7,27 +7,9 @@ import (
 )
 
 type Config struct {
-	App struct {
-		Storage string `toml:"storage"`
-		Server  string `toml:"server"`
-	}
-
-	Logger struct {
-		Level       string `mapstructure:"level"`
-		HandlerType string `mapstructure:"handler_type"`
-		Filename    string `mapstructure:"filename"`
-		AddSource   bool   `mapstructure:"add_source"`
-	} `mapstructure:"logger"`
-
 	Server struct {
-		HttpAddr string `mapstructure:"http_addr"`
 		GrpcAddr string `mapstructure:"grpc_addr"`
 	} `mapstructure:"server"`
-
-	Database struct {
-		Host string `mapstructure:"host"`
-		Port string `mapstructure:"port"`
-	} `mapstructure:"database"`
 }
 
 var configFile string

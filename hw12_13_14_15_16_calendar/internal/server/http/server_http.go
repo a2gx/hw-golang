@@ -20,7 +20,7 @@ type Server struct {
 
 var _ app.Server = &Server{}
 
-func New(addr string, logg *logger.Logger, app *app.App) *Server {
+func New(logg *logger.Logger, app *app.App, addr string) *Server {
 	mux := http.NewServeMux()
 	h := &Handler{logg, app}
 
@@ -42,7 +42,7 @@ func New(addr string, logg *logger.Logger, app *app.App) *Server {
 }
 
 func (s *Server) Start(ctx context.Context) error {
-	s.logg.Info("start http server", slog.String("Addr", s.srv.Addr))
+	s.logg.Info("start HTTP server", slog.String("Addr", s.srv.Addr))
 	errCh := make(chan error)
 
 	go func() {
@@ -61,10 +61,10 @@ func (s *Server) Start(ctx context.Context) error {
 
 func (s *Server) Stop(ctx context.Context) error {
 	fmt.Println()
-	s.logg.Info("stop http server")
+	s.logg.Info("stop HTTP server")
 
 	if err := s.srv.Shutdown(ctx); err != nil {
-		return fmt.Errorf("shutdown http server error: %w", err)
+		return fmt.Errorf("shutdown HTTP server error: %w", err)
 	}
 
 	return nil

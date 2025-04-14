@@ -10,6 +10,9 @@ build:
 run: build
 	$(BIN) -config ./configs/config.yaml
 
+run-grpc-debug:
+	go run ./cmd/grpc_debug -config ./configs/config.yaml
+
 build-img:
 	docker build \
 		--build-arg=LDFLAGS="$(LDFLAGS)" \
@@ -30,6 +33,11 @@ install-lint-deps:
 
 lint: install-lint-deps
 	golangci-lint run ./internal/... ./pkg/... ./cmd/...
+
+gen-proto:
+	protoc --go_out=. --go_opt=paths=source_relative \
+		--go-grpc_out=. \
+		--go-grpc_opt=paths=source_relative api/calendar.proto
 
 # Docker Compose commands
 dc-up:
