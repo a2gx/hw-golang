@@ -31,7 +31,7 @@ func New(addr string, logg *logger.Logger, app *app.App) *Server {
 	}
 }
 
-func (s *Server) Start(_ context.Context) error {
+func (s *Server) Start(ctx context.Context) error {
 	listener, err := net.Listen("tcp", s.addr)
 	if err != nil {
 		return fmt.Errorf("failed to listen: %v", err)
@@ -41,19 +41,35 @@ func (s *Server) Start(_ context.Context) error {
 	pb.RegisterCalendarServer(s.grpcServer, s)
 
 	s.logg.Info("start GRPC server", slog.String("addr", s.addr))
+	errCh := make(chan error)
+
 	go func() {
 		if err := s.grpcServer.Serve(listener); err != nil {
-			s.logg.Error("failed GRPC to serve: %v", err)
+			errCh <- fmt.Errorf("failed GRPC to serve: %v", err)
 		}
 	}()
 
-	return nil
+	select {
+	case err := <-errCh:
+		return err
+	case <-ctx.Done():
+		return nil
+	}
 }
 
-func (s *Server) Stop(_ context.Context) error {
-	if s.grpcServer != nil {
-		s.logg.Info("GRPC server is stopping")
+func (s *Server) Stop(ctx context.Context) error {
+	s.logg.Info("stop GRPC server")
+	stopped := make(chan struct{})
+
+	go func() {
 		s.grpcServer.GracefulStop()
+		close(stopped)
+	}()
+
+	select {
+	case <-ctx.Done():
+		s.grpcServer.Stop()
+	case <-stopped:
 	}
 
 	return nil

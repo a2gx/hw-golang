@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -60,24 +61,60 @@ func main() {
 		log.Fatalf("failed to init server: %v", err)
 	}
 
-	// Start server ...
-
+	// Create context for signal handling
 	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
 
-	logg.Info("calendar is running...")
+	logg.Info("initializing calendar server...",
+		slog.String("server_type", cfg.App.Server),
+		slog.String("storage_type", cfg.App.Storage),
+	)
 
-	if err := srv.Start(context.Background()); err != nil {
-		logg.Error("failed to start server: " + err.Error())
+	// Start server with the context that handles signals
+	if err := srv.Start(ctx); err != nil {
+		logg.Error("failed to start server",
+			slog.String("error", err.Error()),
+			slog.String("server_type", cfg.App.Server),
+		)
 		os.Exit(1)
 	}
 
+	// wait for context cancellation
 	<-ctx.Done()
+	logg.Info("received shutdown signal")
 
+	// create new context for shutdown with timeout
 	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Second*3)
 	defer shutdownCancel()
 
-	if err := srv.Stop(shutdownCtx); err != nil {
-		logg.Error("failed to stop server: " + err.Error())
+	// start graceful shutdown
+	shutdownErr := make(chan error, 1)
+	go func() {
+		shutdownErr <- srv.Stop(shutdownCtx)
+	}()
+
+	// wait for shutdown to complete or timeout
+	select {
+	case err := <-shutdownErr:
+		if err != nil {
+			logg.Error("graceful shutdown failed",
+				slog.String("error", err.Error()),
+				slog.String("server_type", cfg.App.Server),
+			)
+			os.Exit(1)
+		}
+
+		logg.Info("server stopped gracefully",
+			slog.String("server_type", cfg.App.Server),
+			slog.String("status", "success"),
+		)
+		os.Exit(0)
+		
+	case <-shutdownCtx.Done():
+		logg.Error("graceful shutdown timed out",
+			slog.String("timeout", "3s"),
+			slog.String("action", "forcing exit"),
+		)
+		os.Exit(1)
 	}
 }

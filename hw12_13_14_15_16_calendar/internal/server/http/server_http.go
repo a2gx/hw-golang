@@ -46,16 +46,9 @@ func (s *Server) Start(ctx context.Context) error {
 	errCh := make(chan error)
 
 	go func() {
-		err := s.srv.ListenAndServe()
-		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+		if err := s.srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			errCh <- err
 		}
-
-		<-ctx.Done()
-
-		//if err := s.srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-		//	errCh <- err
-		//}
 	}()
 
 	select {
@@ -67,10 +60,12 @@ func (s *Server) Start(ctx context.Context) error {
 }
 
 func (s *Server) Stop(ctx context.Context) error {
-	fmt.Println()
 	s.logg.Info("stop HTTP server")
 
-	if err := s.srv.Shutdown(ctx); err != nil {
+	shutdownCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	if err := s.srv.Shutdown(shutdownCtx); err != nil {
 		return fmt.Errorf("shutdown HTTP server error: %w", err)
 	}
 
