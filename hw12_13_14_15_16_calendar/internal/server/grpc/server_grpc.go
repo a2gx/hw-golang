@@ -40,7 +40,7 @@ func (s *Server) Start(ctx context.Context) error {
 	s.grpcServer = grpc.NewServer()
 	pb.RegisterCalendarServer(s.grpcServer, s)
 
-	s.logg.Info("start GRPC server", slog.String("addr", s.addr))
+	s.logg.Debug("start GRPC server", slog.String("addr", s.addr))
 	errCh := make(chan error)
 
 	go func() {
@@ -58,7 +58,7 @@ func (s *Server) Start(ctx context.Context) error {
 }
 
 func (s *Server) Stop(ctx context.Context) error {
-	s.logg.Info("stop GRPC server")
+	s.logg.Debug("stop GRPC server")
 	stopped := make(chan struct{})
 
 	go func() {

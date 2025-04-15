@@ -17,7 +17,6 @@ type Storage struct {
 var _ app.Storage = &Storage{}
 
 func New(logg *logger.Logger) *Storage {
-	logg.Info("initial storage in-memory")
 	return &Storage{
 		logg:   logg,
 		events: make(map[string]app.Event),
@@ -25,12 +24,12 @@ func New(logg *logger.Logger) *Storage {
 }
 
 func (s *Storage) Connect() error {
-	s.logg.Warn("storage in-memory connected")
+	s.logg.Debug("storage Memory connected")
 	return nil
 }
 
 func (s *Storage) Close() error {
-	s.logg.Warn("storage in-memory closed")
+	s.logg.Debug("storage Memory closed")
 	return nil
 }
 

@@ -4,7 +4,6 @@ import (
 	"context"
 	"flag"
 	"log"
-	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -18,18 +17,19 @@ import (
 
 func main() {
 	flag.Parse()
+
 	if flag.Arg(0) == "version" {
 		printVersion()
 		return
 	}
 
-	// Initialize Configuration
+	// Инициализация конфигурации
 	cfg, err := NewConfig()
 	if err != nil {
 		log.Fatalf("failed to init configuration: %v", err)
 	}
 
-	// Initialize Logger
+	// Инициализация логгера
 	logg := logger.New(logger.Options{
 		Level:     cfg.Logger.Level,
 		Handler:   cfg.Logger.Handler,
@@ -37,24 +37,24 @@ func main() {
 		AddSource: cfg.Logger.AddSource,
 	})
 
-	// Initialize Storage
+	// Инициализация хранилища
 	store, err := storage.New(storage.Options{
 		StorageType: cfg.App.Storage,
 		Logg:        logg,
 	})
 	if err != nil {
-		log.Fatalf("failed to init storage: %v", err)
+		logg.Error("failed to init storage", "error", err)
+		os.Exit(1)
 	}
-
 	if err := store.Connect(); err != nil {
-		logg.Error("failed to connect storage: ", "error", err.Error())
+		logg.Error("failed to connect storage", "error", err)
 		os.Exit(1)
 	}
 
-	// Initialize Repository
+	// Инициализация приложения
 	calendar := app.New(logg, store)
 
-	// Initialize Server
+	// Инициализация сервера
 	srv, err := server.New(server.Options{
 		ServerType: cfg.App.Server,
 		HttpAddr:   cfg.Server.HttpAddr,
@@ -63,73 +63,57 @@ func main() {
 		App:        calendar,
 	})
 	if err != nil {
-		log.Fatalf("failed to init server: %v", err)
-	}
-
-	// Create context for signal handling
-	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
-	defer cancel()
-
-	logg.Info("initializing calendar server...",
-		slog.String("server_type", cfg.App.Server),
-		slog.String("storage_type", cfg.App.Storage),
-	)
-
-	// Start server with the context that handles signals
-	if err := srv.Start(ctx); err != nil {
-		logg.Error("failed to start server",
-			slog.String("error", err.Error()),
-			slog.String("server_type", cfg.App.Server),
-		)
+		logg.Error("failed to init server", "error", err)
 		os.Exit(1)
 	}
 
-	// wait for context cancellation
-	<-ctx.Done()
-	logg.Info("received shutdown signal")
+	// Создание контекста для обработки сигналов
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
+	defer cancel()
 
-	// create new context for shutdown with timeout
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), time.Second*3)
-	defer shutdownCancel()
-
-	// start graceful shutdown
+	// Каналы для обработки завершения работы
 	shutdownErr := make(chan error, 1)
+	shutdownDone := make(chan struct{})
+
+	// Обработка shutdown сигналов
 	go func() {
-		// First stop the server
-		if err := srv.Stop(shutdownCtx); err != nil {
+		<-ctx.Done()
+		logg.Debug("received shutdown signal")
+
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
+		defer cancel()
+
+		if err := srv.Stop(ctx); err != nil {
 			shutdownErr <- err
 			return
 		}
-		// Then close the storage
+
 		if err := store.Close(); err != nil {
 			shutdownErr <- err
 			return
 		}
-		shutdownErr <- nil
+
+		close(shutdownDone)
 	}()
 
-	// wait for shutdown to complete or timeout
+	logg.Info("calendar is running...",
+		"server_type", cfg.App.Server,
+		"storage_type", cfg.App.Storage,
+	)
+
+	// Запуск сервера
+	if err := srv.Start(ctx); err != nil {
+		shutdownErr <- err
+	}
+
+	// Ожидание завершения работы
 	select {
 	case err := <-shutdownErr:
-		if err != nil {
-			logg.Error("graceful shutdown failed",
-				slog.String("error", err.Error()),
-				slog.String("server_type", cfg.App.Server),
-			)
-			os.Exit(1)
-		}
-
-		logg.Info("server stopped gracefully",
-			slog.String("server_type", cfg.App.Server),
-			slog.String("status", "success"),
-		)
-		os.Exit(0)
-
-	case <-shutdownCtx.Done():
-		logg.Error("graceful shutdown timed out",
-			slog.String("timeout", "3s"),
-			slog.String("action", "forcing exit"),
-		)
+		logg.Error("shutdown error", "error", err)
+		cancel()
 		os.Exit(1)
+	case <-shutdownDone:
+		logg.Info("application shutdown completed successfully")
+		os.Exit(0)
 	}
 }

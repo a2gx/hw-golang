@@ -14,20 +14,19 @@ type Storage struct {
 var _ app.Storage = &Storage{}
 
 func New(logg *logger.Logger) *Storage {
-	logg.Info("initial storage postgres")
 	return &Storage{
 		logg: logg,
 	}
 }
 
 func (s *Storage) Connect() error {
-	//TODO implement me
-	panic("implement me")
+	s.logg.Debug("storage SQL connected")
+	return nil
 }
 
 func (s *Storage) Close() error {
-	//TODO implement me
-	panic("implement me")
+	s.logg.Debug("storage SQL closed")
+	return nil
 }
 
 func (s *Storage) CreateEvent(event app.Event) (app.Event, error) {

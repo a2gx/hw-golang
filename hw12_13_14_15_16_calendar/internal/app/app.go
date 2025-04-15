@@ -13,6 +13,7 @@ type App struct {
 var _ Application = &App{} //
 
 func New(logg *logger.Logger, store Storage) *App {
+
 	return &App{
 		logg:  logg,
 		store: store,

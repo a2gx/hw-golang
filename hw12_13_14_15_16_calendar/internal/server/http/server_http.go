@@ -42,7 +42,7 @@ func New(addr string, logg *logger.Logger, app *app.App) *Server {
 }
 
 func (s *Server) Start(ctx context.Context) error {
-	s.logg.Info("start HTTP server", slog.String("Addr", s.srv.Addr))
+	s.logg.Debug("start HTTP server", slog.String("Addr", s.srv.Addr))
 	errCh := make(chan error)
 
 	go func() {
@@ -60,7 +60,7 @@ func (s *Server) Start(ctx context.Context) error {
 }
 
 func (s *Server) Stop(ctx context.Context) error {
-	s.logg.Info("stop HTTP server")
+	s.logg.Debug("stop HTTP server")
 
 	shutdownCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()

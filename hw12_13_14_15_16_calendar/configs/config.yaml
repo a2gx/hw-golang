@@ -1,11 +1,21 @@
 app:
-  storage: "memory"           # example: "memory" | "sql"
-  server: "both"              # example: "http" | "grpc" | "both"
+  # example: "memory" | "sql"
+  storage: "memory"
+
+  # example: "http" | "grpc" | "both"
+  server: "both"
 
 logger:
-  level: "debug"              # example: "debug" | "info" | "warn" | "warning" | "error"
-  handler: "text_color"       # example: "text_color" | "text" | "json"
-  filename: ""                # write to file if this option is not empty, example: "logfile.log"
+  # example: "debug" | "info" | "warn" | "warning" | "error"
+  level: "debug"
+
+  # example: "text_color" | "text" | "json"
+  handler: "text_color"
+
+  # write to file if this option is not empty, example "logfile.log"
+  # and it is recommended to change the handler to "json"
+  filename: ""
+
   add_source: true
 
 server:
