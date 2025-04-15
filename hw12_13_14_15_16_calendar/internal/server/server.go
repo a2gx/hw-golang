@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
 	server_grpc "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/server/grpc"
@@ -29,16 +30,18 @@ type MultiServer struct {
 var _ app.Server = &MultiServer{}
 
 func New(opts Options) (app.Server, error) {
-	srv := &MultiServer{}
+	srv := &MultiServer{
+		logg: opts.Logg,
+	}
 
-	switch opts.ServerType {
-	case "http":
-		srv.http = server_http.New(opts.HttpAddr, opts.Logg, opts.App)
+	switch strings.ToLower(opts.ServerType) {
 	case "grpc":
 		srv.grpc = server_grpc.New(opts.GrpcAddr, opts.Logg, opts.App)
-	case "both":
+	case "http":
 		srv.http = server_http.New(opts.HttpAddr, opts.Logg, opts.App)
+	case "both":
 		srv.grpc = server_grpc.New(opts.GrpcAddr, opts.Logg, opts.App)
+		srv.http = server_http.New(opts.HttpAddr, opts.Logg, opts.App)
 	default:
 		return nil, fmt.Errorf("unknown server type: %s", opts.ServerType)
 	}

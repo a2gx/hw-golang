@@ -2,10 +2,11 @@ package storage
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
-	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/storage/memory"
-	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/storage/sql"
+	storage_memory "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/storage/memory"
+	storage_sql "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/storage/sql"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
 )
 
@@ -15,7 +16,7 @@ type Options struct {
 }
 
 func New(opts Options) (app.Storage, error) {
-	switch opts.StorageType {
+	switch strings.ToLower(opts.StorageType) {
 	case "memory":
 		return storage_memory.New(opts.Logg), nil
 	case "sql":
