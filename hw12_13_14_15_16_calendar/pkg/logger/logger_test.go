@@ -83,7 +83,7 @@ func TestCreateHandler(t *testing.T) {
 			opts := internalOptions{
 				Level: slog.LevelInfo,
 				Options: Options{
-					HandlerType: tt.handlerType,
+					Handler: tt.handlerType,
 				},
 			}
 			handler := createHandler(&buf, opts)
