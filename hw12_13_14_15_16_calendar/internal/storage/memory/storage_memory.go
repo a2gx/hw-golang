@@ -3,7 +3,7 @@ package storage_memory
 import (
 	"sync"
 	"time"
-	
+
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
 )
@@ -25,13 +25,13 @@ func New(logg *logger.Logger) *Storage {
 }
 
 func (s *Storage) Connect() error {
-	//TODO implement me
-	panic("implement me")
+	s.logg.Warn("storage in-memory connected")
+	return nil
 }
 
 func (s *Storage) Close() error {
-	//TODO implement me
-	panic("implement me")
+	s.logg.Warn("storage in-memory closed")
+	return nil
 }
 
 func (s *Storage) CreateEvent(event app.Event) (app.Event, error) {

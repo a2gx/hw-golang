@@ -46,6 +46,11 @@ func main() {
 		log.Fatalf("failed to init storage: %v", err)
 	}
 
+	if err := store.Connect(); err != nil {
+		logg.Error("failed to connect storage: ", "error", err.Error())
+		os.Exit(1)
+	}
+
 	// Initialize Repository
 	calendar := app.New(logg, store)
 
@@ -90,7 +95,17 @@ func main() {
 	// start graceful shutdown
 	shutdownErr := make(chan error, 1)
 	go func() {
-		shutdownErr <- srv.Stop(shutdownCtx)
+		// First stop the server
+		if err := srv.Stop(shutdownCtx); err != nil {
+			shutdownErr <- err
+			return
+		}
+		// Then close the storage
+		if err := store.Close(); err != nil {
+			shutdownErr <- err
+			return
+		}
+		shutdownErr <- nil
 	}()
 
 	// wait for shutdown to complete or timeout
@@ -109,7 +124,7 @@ func main() {
 			slog.String("status", "success"),
 		)
 		os.Exit(0)
-		
+
 	case <-shutdownCtx.Done():
 		logg.Error("graceful shutdown timed out",
 			slog.String("timeout", "3s"),
