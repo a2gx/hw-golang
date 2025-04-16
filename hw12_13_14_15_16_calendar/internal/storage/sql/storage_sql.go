@@ -8,7 +8,7 @@ import (
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/tools"
 
-	_ "github.com/lib/pq" // PostgreSQL driver
+	_ "github.com/lib/pq"
 )
 
 type Storage struct {

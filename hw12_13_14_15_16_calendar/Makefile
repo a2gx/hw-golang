@@ -11,8 +11,20 @@ build:
 run: build
 	$(BIN) -config $(CONFIG_FILE)
 
-run-grpc-client:
+start:
+	go run ./cmd/calendar -config $(CONFIG_FILE)
+
+start-grpc-client:
 	go run ./cmd/calendar_grpc_client -config $(CONFIG_FILE)
+
+start-migration-up:
+	go run ./cmd/calendar_migration -config $(CONFIG_FILE) -command=up
+
+start-migration-down:
+	go run ./cmd/calendar_migration -config $(CONFIG_FILE) -command=down
+
+start-migration-create:
+	go run ./cmd/calendar_migration -config $(CONFIG_FILE) -command=create -name=create
 
 build-img:
 	docker build \
@@ -40,17 +52,7 @@ proto-gen:
 		--go-grpc_out=. \
 		--go-grpc_opt=paths=source_relative api/calendar.proto
 
-# Docker Compose commands
 dc-up:
 	docker-compose up --build
 
-dc-down:
-	docker-compose down
-
-dc-logs:
-	docker-compose logs -f
-
-dc-ps:
-	docker-compose ps
-
-.PHONY: build run run-grpc-client build-img run-img version test lint proto-gen dc-up dc-down dc-logs dc-ps
+.PHONY: build run start start-grpc-client start-migration-up start-migration-down start-migration-create start-initialize build-img run-img version test lint proto-gen dc-up
