@@ -40,4 +40,17 @@ proto-gen:
 		--go-grpc_out=. \
 		--go-grpc_opt=paths=source_relative api/calendar.proto
 
-.PHONY: build run run-grpc-client build-img run-img version test lint proto-gen
+# Docker Compose commands
+dc-up:
+	docker-compose up --build
+
+dc-down:
+	docker-compose down
+
+dc-logs:
+	docker-compose logs -f
+
+dc-ps:
+	docker-compose ps
+
+.PHONY: build run run-grpc-client build-img run-img version test lint proto-gen dc-up dc-down dc-logs dc-ps

@@ -1,30 +1,56 @@
 package storage_sql
 
 import (
+	"database/sql"
 	"time"
 
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
+	_ "github.com/lib/pq" // PostgreSQL driver
 )
 
 type Storage struct {
 	logg *logger.Logger
+	db   *sql.DB
+	dns  string // Data Source Name
 }
 
 var _ app.Storage = &Storage{}
 
-func New(logg *logger.Logger) *Storage {
+func New(logg *logger.Logger, dns string) *Storage {
 	return &Storage{
 		logg: logg,
+		dns:  dns,
 	}
 }
 
 func (s *Storage) Connect() error {
+	db, err := sql.Open("postgres", s.dns)
+	if err != nil {
+		s.logg.Error("failed to connect to database", "error", err)
+		return err
+	}
+
+	if err := db.Ping(); err != nil {
+		s.logg.Error("failed to ping database", "error", err)
+		return err
+	}
+
+	s.db = db
 	s.logg.Debug("storage SQL connected")
 	return nil
 }
 
 func (s *Storage) Close() error {
+	if s.db == nil {
+		return nil
+	}
+
+	if err := s.db.Close(); err != nil {
+		s.logg.Error("failed to close database connection", "error", err)
+		return err
+	}
+
 	s.logg.Debug("storage SQL closed")
 	return nil
 }

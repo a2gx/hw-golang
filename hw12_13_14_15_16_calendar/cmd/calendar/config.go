@@ -22,6 +22,13 @@ type Config struct {
 		HttpAddr string `mapstructure:"http_addr"`
 		GrpcAddr string `mapstructure:"grpc_addr"`
 	} `mapstructure:"server"`
+
+	Database struct {
+		Username string `mapstructure:"username"`
+		Password string `mapstructure:"password"`
+		Dbname   string `mapstructure:"dbname"`
+		Port     int    `mapstructure:"port"`
+	} `mapstructure:"database"`
 }
 
 var configFile string

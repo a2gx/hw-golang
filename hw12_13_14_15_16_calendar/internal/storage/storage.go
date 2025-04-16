@@ -13,6 +13,7 @@ import (
 type Options struct {
 	StorageType string
 	Logg        *logger.Logger
+	DdDns       string
 }
 
 func New(opts Options) (app.Storage, error) {
@@ -20,7 +21,7 @@ func New(opts Options) (app.Storage, error) {
 	case "memory":
 		return storage_memory.New(opts.Logg), nil
 	case "sql":
-		return storage_sql.New(opts.Logg), nil
+		return storage_sql.New(opts.Logg, opts.DdDns), nil
 	default:
 		return nil, fmt.Errorf("unknown storage type: %s", opts.StorageType)
 	}
