@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log/slog"
 	"net/http"
 	"time"
 
@@ -42,7 +41,7 @@ func New(addr string, logg *logger.Logger, app *app.App) *Server {
 }
 
 func (s *Server) Start(ctx context.Context) error {
-	s.logg.Debug("start HTTP server", slog.String("Addr", s.srv.Addr))
+	s.logg.Debug("start HTTP server", "addr", s.srv.Addr)
 	errCh := make(chan error)
 
 	go func() {
@@ -53,7 +52,7 @@ func (s *Server) Start(ctx context.Context) error {
 
 	select {
 	case err := <-errCh:
-		return err
+		return fmt.Errorf("failed HTTP to serve: %v", err)
 	case <-ctx.Done():
 		return nil
 	}

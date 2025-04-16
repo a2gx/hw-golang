@@ -9,7 +9,7 @@ import (
 )
 
 func TestStorageMemory(t *testing.T) {
-	logg := logger.New(logger.Options{Level: "debug"})
+	logg := logger.New(logger.Options{Level: "info"})
 	store := New(logg)
 
 	if err := store.Connect(); err != nil {

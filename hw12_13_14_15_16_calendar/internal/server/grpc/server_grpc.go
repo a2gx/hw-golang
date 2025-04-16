@@ -3,7 +3,6 @@ package server_grpc
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"net"
 
 	"google.golang.org/grpc"
@@ -34,13 +33,13 @@ func New(addr string, logg *logger.Logger, app *app.App) *Server {
 func (s *Server) Start(ctx context.Context) error {
 	listener, err := net.Listen("tcp", s.addr)
 	if err != nil {
-		return fmt.Errorf("failed to listen: %v", err)
+		return fmt.Errorf("failed GRPC to listen: %v", err)
 	}
 
 	s.grpcServer = grpc.NewServer()
 	pb.RegisterCalendarServer(s.grpcServer, s)
 
-	s.logg.Debug("start GRPC server", slog.String("addr", s.addr))
+	s.logg.Debug("start GRPC server", "addr", s.addr)
 	errCh := make(chan error)
 
 	go func() {

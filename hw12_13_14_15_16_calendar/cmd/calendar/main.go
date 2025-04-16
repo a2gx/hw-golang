@@ -78,7 +78,7 @@ func main() {
 	// Обработка shutdown сигналов
 	go func() {
 		<-ctx.Done()
-		logg.Debug("received shutdown signal")
+		logg.Warn("received shutdown signal")
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 		defer cancel()
