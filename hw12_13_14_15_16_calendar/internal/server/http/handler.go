@@ -1,4 +1,4 @@
-package server_http
+package serverhttp
 
 import (
 	"net/http"
@@ -12,7 +12,7 @@ type Handler struct {
 	app  *app.App
 }
 
-func (h *Handler) GetPing(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetPing(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write([]byte("pong"))
 }

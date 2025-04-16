@@ -6,15 +6,15 @@ import (
 	"strings"
 
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
-	server_grpc "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/server/grpc"
-	server_http "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/server/http"
+	servergrpc "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/server/grpc"
+	serverhttp "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/server/http"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
 )
 
 type Options struct {
 	ServerType string
-	HttpAddr   string
-	GrpcAddr   string
+	HTTPAddr   string
+	GRPCAddr   string
 	Logg       *logger.Logger
 	App        *app.App
 }
@@ -36,12 +36,12 @@ func New(opts Options) (app.Server, error) {
 
 	switch strings.ToLower(opts.ServerType) {
 	case "grpc":
-		srv.grpc = server_grpc.New(opts.GrpcAddr, opts.Logg, opts.App)
+		srv.grpc = servergrpc.New(opts.GRPCAddr, opts.Logg, opts.App)
 	case "http":
-		srv.http = server_http.New(opts.HttpAddr, opts.Logg, opts.App)
+		srv.http = serverhttp.New(opts.HTTPAddr, opts.Logg, opts.App)
 	case "both":
-		srv.grpc = server_grpc.New(opts.GrpcAddr, opts.Logg, opts.App)
-		srv.http = server_http.New(opts.HttpAddr, opts.Logg, opts.App)
+		srv.grpc = servergrpc.New(opts.GRPCAddr, opts.Logg, opts.App)
+		srv.http = serverhttp.New(opts.HTTPAddr, opts.Logg, opts.App)
 	default:
 		return nil, fmt.Errorf("unknown server type: %s", opts.ServerType)
 	}

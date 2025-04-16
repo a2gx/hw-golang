@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/config"
 )
 
@@ -19,8 +20,8 @@ type Config struct {
 	} `mapstructure:"logger"`
 
 	Server struct {
-		HttpAddr string `mapstructure:"http_addr"`
-		GrpcAddr string `mapstructure:"grpc_addr"`
+		HTTPAddr string `mapstructure:"http_addr"`
+		GRPCAddr string `mapstructure:"grpc_addr"`
 	} `mapstructure:"server"`
 
 	Database struct {

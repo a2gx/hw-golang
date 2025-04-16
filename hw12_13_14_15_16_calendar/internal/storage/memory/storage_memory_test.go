@@ -1,4 +1,4 @@
-package storage_memory
+package storagememory
 
 import (
 	"testing"

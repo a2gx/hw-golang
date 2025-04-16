@@ -68,7 +68,7 @@ func parseLevel(lvl string) slog.Level {
 }
 
 func createWriter(opts Options) (io.Writer, closeFn) {
-	var defaultCloseFn = func() {}
+	defaultCloseFn := func() {}
 
 	if opts.Filename == "" {
 		return os.Stdout, defaultCloseFn

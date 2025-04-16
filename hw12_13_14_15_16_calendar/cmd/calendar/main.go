@@ -5,7 +5,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"os"
 	"os/signal"
 	"syscall"
 	"time"
@@ -27,7 +26,8 @@ func main() {
 	// Инициализация конфигурации
 	cfg, err := NewConfig()
 	if err != nil {
-		log.Fatalf("failed to init configuration: %v", err)
+		log.Printf("failed to init configuration: %v", err)
+		return
 	}
 
 	// Инициализация логгера
@@ -42,7 +42,7 @@ func main() {
 	store, err := storage.New(storage.Options{
 		StorageType: cfg.App.Storage,
 		Logg:        logg,
-		DdDns: fmt.Sprintf(
+		DatabaseDNS: fmt.Sprintf(
 			"user=%s password=%s dbname=%s port=%d sslmode=disable",
 			cfg.Database.Username,
 			cfg.Database.Password,
@@ -52,11 +52,11 @@ func main() {
 	})
 	if err != nil {
 		logg.Error("failed to init storage", "error", err)
-		os.Exit(1)
+		return
 	}
 	if err := store.Connect(); err != nil {
 		logg.Error("failed to connect storage", "error", err)
-		os.Exit(1)
+		return
 	}
 
 	// Инициализация приложения
@@ -65,14 +65,14 @@ func main() {
 	// Инициализация сервера
 	srv, err := server.New(server.Options{
 		ServerType: cfg.App.Server,
-		HttpAddr:   cfg.Server.HttpAddr,
-		GrpcAddr:   cfg.Server.GrpcAddr,
+		HTTPAddr:   cfg.Server.HTTPAddr,
+		GRPCAddr:   cfg.Server.GRPCAddr,
 		Logg:       logg,
 		App:        calendar,
 	})
 	if err != nil {
 		logg.Error("failed to init server", "error", err)
-		os.Exit(1)
+		return
 	}
 
 	// Создание контекста для обработки сигналов
@@ -119,9 +119,7 @@ func main() {
 	case err := <-shutdownErr:
 		logg.Error("shutdown error", "error", err)
 		cancel()
-		os.Exit(1)
 	case <-shutdownDone:
 		logg.Info("application shutdown completed successfully")
-		os.Exit(0)
 	}
 }

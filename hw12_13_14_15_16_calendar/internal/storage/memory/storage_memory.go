@@ -1,13 +1,12 @@
-package storage_memory
+package storagememory
 
 import (
-	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/tools"
 	"sync"
 	"time"
 
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
-
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/tools"
 	"github.com/google/uuid"
 )
 
@@ -85,7 +84,6 @@ func (s *Storage) ListEventsForDay(date time.Time) []app.Event {
 
 	s.logg.Debug("events listed for day", "start_date", st, "end_date", fn, "count", len(result))
 	return result
-
 }
 
 func (s *Storage) ListEventsForWeek(date time.Time) []app.Event {

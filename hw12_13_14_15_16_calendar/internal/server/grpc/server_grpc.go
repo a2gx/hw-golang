@@ -1,15 +1,14 @@
-package server_grpc
+package servergrpc
 
 import (
 	"context"
 	"fmt"
 	"net"
 
-	"google.golang.org/grpc"
-
 	pb "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/api"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
+	"google.golang.org/grpc"
 )
 
 type Server struct {
@@ -33,7 +32,7 @@ func New(addr string, logg *logger.Logger, app *app.App) *Server {
 func (s *Server) Start(ctx context.Context) error {
 	listener, err := net.Listen("tcp", s.addr)
 	if err != nil {
-		return fmt.Errorf("failed GRPC to listen: %v", err)
+		return fmt.Errorf("failed GRPC to listen: %w", err)
 	}
 
 	s.grpcServer = grpc.NewServer()
@@ -44,7 +43,7 @@ func (s *Server) Start(ctx context.Context) error {
 
 	go func() {
 		if err := s.grpcServer.Serve(listener); err != nil {
-			errCh <- fmt.Errorf("failed GRPC to serve: %v", err)
+			errCh <- fmt.Errorf("failed GRPC to serve: %w", err)
 		}
 	}()
 
@@ -74,7 +73,7 @@ func (s *Server) Stop(ctx context.Context) error {
 	return nil
 }
 
-func (s *Server) CreateEvent(ctx context.Context, req *pb.CreateEventRequest) (*pb.CreateEventReply, error) {
+func (s *Server) CreateEvent(_ context.Context, _ *pb.CreateEventRequest) (*pb.CreateEventReply, error) {
 	s.logg.Info("handler CreateEvent")
 	return &pb.CreateEventReply{}, nil
 }

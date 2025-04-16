@@ -6,10 +6,9 @@ import (
 	"log/slog"
 	"time"
 
+	pb "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/api"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-
-	pb "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/api"
 )
 
 func main() {
@@ -18,7 +17,7 @@ func main() {
 		log.Fatalf("failed to init configuration: %v", err)
 	}
 
-	conn, err := grpc.NewClient(cfg.Server.GrpcAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.NewClient(cfg.Server.GRPCAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}

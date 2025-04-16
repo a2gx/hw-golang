@@ -1,4 +1,4 @@
-package server_http
+package serverhttp
 
 import (
 	"context"
@@ -52,7 +52,7 @@ func (s *Server) Start(ctx context.Context) error {
 
 	select {
 	case err := <-errCh:
-		return fmt.Errorf("failed HTTP to serve: %v", err)
+		return fmt.Errorf("failed HTTP to serve: %w", err)
 	case <-ctx.Done():
 		return nil
 	}

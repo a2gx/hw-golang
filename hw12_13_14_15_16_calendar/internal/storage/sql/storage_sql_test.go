@@ -1,7 +1,7 @@
-package storage_sql
+package storagesql
 
 import "testing"
 
-func TestStorageSql(t *testing.T) {
+func TestStorageSql(_ *testing.T) {
 	// TODO
 }

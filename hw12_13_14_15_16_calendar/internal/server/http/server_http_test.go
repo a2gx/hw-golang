@@ -1,4 +1,4 @@
-package server_http
+package serverhttp
 
 import (
 	"context"
@@ -35,9 +35,9 @@ func TestStartAndStop(t *testing.T) {
 		require.NoError(t, err)
 	}()
 
-	// Проверка доступности эндпоинта /ping
-	time.Sleep(100 * time.Millisecond) // Даем серверу время на запуск
-	resp, err := http.Get("http://localhost:8081/ping")
+	// Проверка доступности /ping
+	time.Sleep(100 * time.Millisecond)                  // Даем серверу время на запуск
+	resp, err := http.Get("http://localhost:8081/ping") //nolint:noctx,bodyclose
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 

@@ -2,12 +2,13 @@ package main
 
 import (
 	"flag"
+
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/config"
 )
 
 type Config struct {
 	Server struct {
-		GrpcAddr string `mapstructure:"grpc_addr"`
+		GRPCAddr string `mapstructure:"grpc_addr"`
 	} `mapstructure:"server"`
 }
 

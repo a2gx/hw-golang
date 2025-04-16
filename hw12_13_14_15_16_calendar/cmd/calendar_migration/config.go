@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/config"
 )
 
@@ -21,14 +22,16 @@ type Config struct {
 		Port     int    `mapstructure:"port"`
 	} `mapstructure:"database"`
 
-	DatabaseDns      string
+	DatabaseDNS      string
 	MigrationCommand string
 	MigrationName    string
 	MigrationDir     string
 }
 
-var configPath string
-var command, name string
+var (
+	configPath    string
+	command, name string
+)
 
 func init() {
 	flag.StringVar(&configPath, "config", "./configs/config.yaml", "Path to configuration file")
@@ -42,7 +45,7 @@ func NewConfig() (*Config, error) {
 		return nil, err
 	}
 
-	dbDns := fmt.Sprintf(
+	databaseDNS := fmt.Sprintf(
 		"user=%s password=%s dbname=%s host=%s port=%d sslmode=disable",
 		instance.Database.Username,
 		instance.Database.Password,
@@ -55,7 +58,7 @@ func NewConfig() (*Config, error) {
 		MigrationDir:     "./migrations",
 		MigrationCommand: command,
 		MigrationName:    name,
-		DatabaseDns:      dbDns,
+		DatabaseDNS:      databaseDNS,
 		Logger:           instance.Logger,
 	}, nil
 }
