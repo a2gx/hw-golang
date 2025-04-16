@@ -1,12 +1,13 @@
 package storage_memory
 
 import (
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/tools"
 	"sync"
 	"time"
 
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
-	
+
 	"github.com/google/uuid"
 )
 
@@ -74,7 +75,7 @@ func (s *Storage) ListEventsForDay(date time.Time) []app.Event {
 	defer s.mu.RUnlock()
 
 	var result []app.Event
-	st, fn := dateInterval(date, 1) // +1 день, только указанный день
+	st, fn := tools.GetDateInterval(date, 1) // +1 день, только указанный день
 
 	for _, e := range s.events {
 		if e.StartTime.Before(fn) && e.EndTime.After(st) {
@@ -92,7 +93,7 @@ func (s *Storage) ListEventsForWeek(date time.Time) []app.Event {
 	defer s.mu.RUnlock()
 
 	var result []app.Event
-	st, fn := dateInterval(date, 7) // +7 дней
+	st, fn := tools.GetDateInterval(date, 7) // +7 дней
 
 	for _, e := range s.events {
 		if e.StartTime.Before(fn) && e.EndTime.After(st) {
@@ -109,7 +110,7 @@ func (s *Storage) ListEventsForMonth(date time.Time) []app.Event {
 	defer s.mu.RUnlock()
 
 	var result []app.Event
-	st, fn := dateInterval(date, 30) // +30 дней
+	st, fn := tools.GetDateInterval(date, 30) // +30 дней
 
 	for _, e := range s.events {
 		if e.StartTime.Before(fn) && e.EndTime.After(st) {
@@ -119,10 +120,4 @@ func (s *Storage) ListEventsForMonth(date time.Time) []app.Event {
 
 	s.logg.Debug("events listed for month", "start_date", st, "end_date", fn, "count", len(result))
 	return result
-}
-
-func dateInterval(date time.Time, add int) (start, finish time.Time) {
-	// Нормализуем дату, сравниваем без учета времени
-	date = time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
-	return date, date.AddDate(0, 0, add)
 }
