@@ -22,7 +22,8 @@ type Config struct {
 		Port     int    `mapstructure:"port"`
 	} `mapstructure:"database"`
 
-	DatabaseDNS      string
+	DatabaseDNS string
+
 	MigrationCommand string
 	MigrationName    string
 	MigrationDir     string
@@ -45,7 +46,7 @@ func NewConfig() (*Config, error) {
 		return nil, err
 	}
 
-	databaseDNS := fmt.Sprintf(
+	instance.DatabaseDNS = fmt.Sprintf(
 		"user=%s password=%s dbname=%s host=%s port=%d sslmode=disable",
 		instance.Database.Username,
 		instance.Database.Password,
@@ -54,11 +55,9 @@ func NewConfig() (*Config, error) {
 		instance.Database.Port,
 	)
 
-	return &Config{
-		MigrationDir:     "./migrations",
-		MigrationCommand: command,
-		MigrationName:    name,
-		DatabaseDNS:      databaseDNS,
-		Logger:           instance.Logger,
-	}, nil
+	instance.MigrationDir = "./migrations"
+	instance.MigrationCommand = command
+	instance.MigrationName = name
+
+	return instance, nil
 }

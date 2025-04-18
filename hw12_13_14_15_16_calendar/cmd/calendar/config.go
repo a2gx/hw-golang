@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/config"
 )
@@ -30,6 +31,8 @@ type Config struct {
 		Dbname   string `mapstructure:"dbname"`
 		Port     int    `mapstructure:"port"`
 	} `mapstructure:"database"`
+
+	DatabaseDNS string
 }
 
 var configFile string
@@ -43,6 +46,15 @@ func NewConfig() (*Config, error) {
 	if err := config.LoadConfig(instance, configFile); err != nil {
 		return nil, err
 	}
+
+	instance.DatabaseDNS = fmt.Sprintf(
+		"user=%s password=%s dbname=%s host=%s port=%d sslmode=disable",
+		instance.Database.Username,
+		instance.Database.Password,
+		instance.Database.Dbname,
+		"localhost",
+		instance.Database.Port,
+	)
 
 	return instance, nil
 }

@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"fmt"
 	"log"
 	"os/signal"
 	"syscall"
@@ -41,14 +40,8 @@ func main() {
 	// Инициализация хранилища
 	store, err := storage.New(storage.Options{
 		StorageType: cfg.App.Storage,
+		DatabaseDNS: cfg.DatabaseDNS,
 		Logg:        logg,
-		DatabaseDNS: fmt.Sprintf(
-			"user=%s password=%s dbname=%s port=%d sslmode=disable",
-			cfg.Database.Username,
-			cfg.Database.Password,
-			cfg.Database.Dbname,
-			cfg.Database.Port,
-		),
 	})
 	if err != nil {
 		logg.Error("failed to init storage", "error", err)

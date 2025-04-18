@@ -12,8 +12,8 @@ import (
 
 type Options struct {
 	StorageType string
-	Logg        *logger.Logger
 	DatabaseDNS string
+	Logg        *logger.Logger
 }
 
 func New(opts Options) (app.Storage, error) {
