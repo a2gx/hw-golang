@@ -23,8 +23,8 @@ start-migration-up:
 start-migration-down:
 	go run ./cmd/calendar_migration -config $(CONFIG_FILE) -command=down
 
-start-migration-create:
-	go run ./cmd/calendar_migration -config $(CONFIG_FILE) -command=create -name=create
+start-migration-new:
+	go run ./cmd/calendar_migration -config $(CONFIG_FILE) -command=create -name=new
 
 build-img:
 	docker build \
