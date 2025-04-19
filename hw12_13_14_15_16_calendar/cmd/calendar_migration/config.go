@@ -8,22 +8,12 @@ import (
 )
 
 type Config struct {
-	App struct {
-		Storage string `mapstructure:"storage"`
-		Server  string `mapstructure:"server"`
-	} `mapstructure:"app"`
-
 	Logger struct {
 		Level     string `mapstructure:"level"`
 		Handler   string `mapstructure:"handler"`
 		Filename  string `mapstructure:"filename"`
 		AddSource bool   `mapstructure:"add_source"`
 	} `mapstructure:"logger"`
-
-	Server struct {
-		HTTPAddr string `mapstructure:"http_addr"`
-		GRPCAddr string `mapstructure:"grpc_addr"`
-	} `mapstructure:"server"`
 
 	Database struct {
 		Username string `mapstructure:"username"`
@@ -33,17 +23,26 @@ type Config struct {
 	} `mapstructure:"database"`
 
 	DatabaseDNS string
+
+	MigrationCommand string
+	MigrationName    string
+	MigrationDir     string
 }
 
-var configFile string
+var (
+	configPath    string
+	command, name string
+)
 
 func init() {
-	flag.StringVar(&configFile, "config", "./configs/config.yaml", "Path to configuration file")
+	flag.StringVar(&configPath, "config", "./configs/config.yaml", "Path to configuration file")
+	flag.StringVar(&command, "command", "status", "Command for migration")
+	flag.StringVar(&name, "name", "", "Name for new migration")
 }
 
 func NewConfig() (*Config, error) {
 	instance := &Config{}
-	if err := config.LoadConfig(instance, configFile); err != nil {
+	if err := config.LoadConfig(instance, configPath); err != nil {
 		return nil, err
 	}
 
@@ -55,6 +54,10 @@ func NewConfig() (*Config, error) {
 		"localhost",
 		instance.Database.Port,
 	)
+
+	instance.MigrationDir = "./migrations"
+	instance.MigrationCommand = command
+	instance.MigrationName = name
 
 	return instance, nil
 }

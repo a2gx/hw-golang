@@ -1,5 +1,29 @@
-[logger]
-level = "INFO"
+app:
+  # example: "memory" | "sql"
+  storage: "memory"
 
-# TODO
-# ...
+  # example: "http" | "grpc" | "both"
+  server: "both"
+
+logger:
+  # example: "debug" | "info" | "warn" | "warning" | "error"
+  level: "debug"
+
+  # example: "text_color" | "text" | "json"
+  handler: "text_color"
+
+  # write to file if this option is not empty, example "logfile.log"
+  # and it is recommended to change the handler to "json"
+  filename: ""
+
+  add_source: true
+
+server:
+  http_addr: "localhost:8085"
+  grpc_addr: "localhost:50055"
+
+database:
+  username: "root"
+  password: "root"
+  dbname: "calendar"
+  port: 5433

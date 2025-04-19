@@ -3,22 +3,16 @@ package main
 import (
 	"context"
 	"flag"
-	"os"
+	"log"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/app"
-	"github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/logger"
-	internalhttp "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/server/http"
-	memorystorage "github.com/fixme_my_friend/hw12_13_14_15_calendar/internal/storage/memory"
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/server"
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/storage"
+	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
 )
-
-var configFile string
-
-func init() {
-	flag.StringVar(&configFile, "config", "/etc/calendar/config.toml", "Path to configuration file")
-}
 
 func main() {
 	flag.Parse()
@@ -28,34 +22,97 @@ func main() {
 		return
 	}
 
-	config := NewConfig()
-	logg := logger.New(config.Logger.Level)
+	// Инициализация конфигурации
+	cfg, err := NewConfig()
+	if err != nil {
+		log.Printf("failed to init configuration: %v", err)
+		return
+	}
 
-	storage := memorystorage.New()
-	calendar := app.New(logg, storage)
+	// Инициализация логгера
+	logg := logger.New(logger.Options{
+		Level:     cfg.Logger.Level,
+		Handler:   cfg.Logger.Handler,
+		Filename:  cfg.Logger.Filename,
+		AddSource: cfg.Logger.AddSource,
+	})
 
-	server := internalhttp.NewServer(logg, calendar)
+	// Инициализация хранилища
+	store, err := storage.New(storage.Options{
+		StorageType: cfg.App.Storage,
+		DatabaseDNS: cfg.DatabaseDNS,
+		Logg:        logg,
+	})
+	if err != nil {
+		logg.Error("failed to init storage", "error", err)
+		return
+	}
+	if err := store.Connect(); err != nil {
+		logg.Error("failed to connect storage", "error", err)
+		return
+	}
 
-	ctx, cancel := signal.NotifyContext(context.Background(),
-		syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
+	// Инициализация приложения
+	calendar := app.New(logg, store)
+
+	// Инициализация сервера
+	srv, err := server.New(server.Options{
+		ServerType: cfg.App.Server,
+		HTTPAddr:   cfg.Server.HTTPAddr,
+		GRPCAddr:   cfg.Server.GRPCAddr,
+		Logg:       logg,
+		App:        calendar,
+	})
+	if err != nil {
+		logg.Error("failed to init server", "error", err)
+		return
+	}
+
+	// Создание контекста для обработки сигналов
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
 
+	// Каналы для обработки завершения работы
+	shutdownErr := make(chan error, 1)
+	shutdownDone := make(chan struct{})
+
+	// Обработка shutdown сигналов
 	go func() {
 		<-ctx.Done()
+		logg.Warn("received shutdown signal")
 
 		ctx, cancel := context.WithTimeout(context.Background(), time.Second*3)
 		defer cancel()
 
-		if err := server.Stop(ctx); err != nil {
-			logg.Error("failed to stop http server: " + err.Error())
+		if err := srv.Stop(ctx); err != nil {
+			shutdownErr <- err
+			return
 		}
+
+		if err := store.Close(); err != nil {
+			shutdownErr <- err
+			return
+		}
+
+		close(shutdownDone)
 	}()
 
-	logg.Info("calendar is running...")
+	logg.Info("calendar is running...",
+		"server_type", cfg.App.Server,
+		"storage_type", cfg.App.Storage,
+	)
 
-	if err := server.Start(ctx); err != nil {
-		logg.Error("failed to start http server: " + err.Error())
+	// Запуск сервера
+	if err := srv.Start(ctx); err != nil {
+		shutdownErr <- err
+	}
+
+	// Ожидание завершения работы
+	select {
+	case err := <-shutdownErr:
+		logg.Error("shutdown error", "error", err)
 		cancel()
-		os.Exit(1) //nolint:gocritic
+	case <-shutdownDone:
+		logg.Info("application shutdown completed successfully")
 	}
 }
