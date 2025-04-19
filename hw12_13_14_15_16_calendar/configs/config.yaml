@@ -1,6 +1,6 @@
 app:
   # example: "memory" | "sql"
-  storage: "sql"
+  storage: "memory"
 
   # example: "http" | "grpc" | "both"
   server: "both"

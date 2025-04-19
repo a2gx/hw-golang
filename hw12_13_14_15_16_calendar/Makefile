@@ -1,4 +1,4 @@
-BIN := "./bin/calendar"
+BIN := ./bin/calendar
 DOCKER_IMG="calendar:develop"
 CONFIG_FILE := "./configs/config.yaml"
 
@@ -14,11 +14,11 @@ run: build
 start:
 	go run ./cmd/calendar -config $(CONFIG_FILE)
 
-start-grpc-client:
-	go run ./cmd/calendar_grpc_client -config $(CONFIG_FILE)
+start-grpc:
+	go run ./cmd/grpc_client -config $(CONFIG_FILE)
 
-start-migration-up:
-	go run ./cmd/calendar_migration -config $(CONFIG_FILE) -command=up
+start-migration:
+	go run ./cmd/migration -config $(CONFIG_FILE) -command=up
 
 start-migration-down:
 	go run ./cmd/calendar_migration -config $(CONFIG_FILE) -command=down
@@ -49,7 +49,7 @@ lint: install-lint-deps
 	golangci-lint run ./internal/...
 	golangci-lint run ./pkg/...
 
-proto-gen:
+generate:
 	protoc --go_out=. --go_opt=paths=source_relative \
 		--go-grpc_out=. \
 		--go-grpc_opt=paths=source_relative api/calendar.proto

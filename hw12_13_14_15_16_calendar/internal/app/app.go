@@ -22,33 +22,30 @@ func New(logg *logger.Logger, store Storage) *App {
 
 func (a *App) CreateEvent(event Event) (Event, error) {
 	a.logg.Debug("App.CreateEvent", "event", event)
-	return event, nil
+	return a.store.CreateEvent(event)
 }
 
 func (a *App) UpdateEvent(event Event) (Event, error) {
 	a.logg.Debug("App.UpdateEvent", "event", event)
-	return event, nil
+	return a.store.UpdateEvent(event)
 }
 
 func (a *App) DeleteEvent(event Event) error {
 	a.logg.Debug("App.DeleteEvent", "event", event)
-	return nil
+	return a.store.DeleteEvent(event)
 }
 
 func (a *App) ListEventsForDay(date time.Time) []Event {
 	a.logg.Debug("App.ListEventsForDay", "start_date", date)
-	events := make([]Event, 0)
-	return events
+	return a.store.ListEventsForDay(date)
 }
 
 func (a *App) ListEventsForWeek(date time.Time) []Event {
 	a.logg.Debug("App.ListEventsForWeek", "start_date", date)
-	events := make([]Event, 0)
-	return events
+	return a.store.ListEventsForWeek(date)
 }
 
 func (a *App) ListEventsForMonth(date time.Time) []Event {
 	a.logg.Debug("App.ListEventsForWeek", "start_date", date)
-	events := make([]Event, 0)
-	return events
+	return a.store.ListEventsForMonth(date)
 }
