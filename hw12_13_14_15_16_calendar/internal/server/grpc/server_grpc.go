@@ -37,7 +37,9 @@ func (s *Server) Start(ctx context.Context) error {
 		return fmt.Errorf("failed GRPC to listen: %w", err)
 	}
 
-	s.grpcServer = grpc.NewServer()
+	s.grpcServer = grpc.NewServer(
+		grpc.UnaryInterceptor(loggingInterceptor(s.logg)),
+	)
 	pb.RegisterCalendarServer(s.grpcServer, s.handler)
 
 	s.logg.Debug("start GRPC server", "addr", s.addr)

@@ -2,7 +2,6 @@ package servergrpc
 
 import (
 	"context"
-
 	pb "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/api"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"

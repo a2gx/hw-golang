@@ -1,7 +1,6 @@
 package serverhttp
 
 import (
-	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
@@ -22,17 +21,15 @@ func loggingMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 		latency := time.Since(start)
 
-		msg := fmt.Sprintf(
-			"%s [%s] %s %s %s %dms '%s'",
-			r.RemoteAddr,
-			start.Format("02/Jan/2006:15:04:05 -0700"),
-			r.Method,
-			r.RequestURI,
-			r.Proto,
-			latency.Milliseconds(),
-			r.UserAgent(),
+		slog.Info(
+			"HTTP request",
+			"remote_addr", r.RemoteAddr,
+			"time", start.Format("02/Jan/2006:15:04:05 -0700"),
+			"method", r.Method,
+			"request_uri", r.RequestURI,
+			"proto", r.Proto,
+			"latency_ms", latency.Milliseconds(),
+			"user_agent", r.UserAgent(),
 		)
-
-		slog.Info(msg)
 	})
 }
