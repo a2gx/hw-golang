@@ -33,3 +33,12 @@ func loggingMiddleware(next http.Handler) http.Handler {
 		)
 	})
 }
+
+func maxBytesMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Limit the size of the request body to 1 MB
+		// https://uptrace.dev/blog/golang-json-rest-api#use-httpmaxbytesreader-to-limit-requests-length
+		r.Body = http.MaxBytesReader(w, r.Body, 1<<20) // 1 MB limit
+		next.ServeHTTP(w, r)
+	})
+}
