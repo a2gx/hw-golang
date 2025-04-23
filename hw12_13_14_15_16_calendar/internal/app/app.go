@@ -27,9 +27,6 @@ func (a *App) mergeEvents(existing, updates Event) Event {
 	if updates.Description != "" {
 		existing.Description = updates.Description
 	}
-	if updates.UserID != "" {
-		existing.UserID = updates.UserID
-	}
 	if !updates.StartTime.IsZero() {
 		existing.StartTime = updates.StartTime
 	}
@@ -40,11 +37,6 @@ func (a *App) mergeEvents(existing, updates Event) Event {
 		existing.NotifyTime = updates.NotifyTime
 	}
 	return existing
-}
-
-func (a *App) getDateInterval(date time.Time, add int) (start, finish time.Time) {
-	date = time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
-	return date, date.AddDate(0, 0, add)
 }
 
 func (a *App) Create(event Event) (Event, error) {
@@ -73,24 +65,11 @@ func (a *App) Delete(event Event) error {
 	return a.store.DeleteEvent(event)
 }
 
-func (a *App) ListEventsInInterval(from time.Time, days int) []Event {
-	a.logg.Debug("App.ListEventsInInterval", "start_date", from, "days", days)
+func (a *App) EventsInInterval(date time.Time, days int) []Event {
+	a.logg.Debug("App.ListEventsInInterval", "start_date", date, "days", days)
 
-	st, fn := a.getDateInterval(from, days)
-	return a.store.ListEventsInInterval(st, fn)
-}
+	from := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
+	to := from.AddDate(0, 0, days)
 
-func (a *App) ListEventsForDay(date time.Time) []Event {
-	a.logg.Debug("App.ListEventsForDay", "start_date", date)
-	return a.store.ListEventsForDay(date)
-}
-
-func (a *App) ListEventsForWeek(date time.Time) []Event {
-	a.logg.Debug("App.ListEventsForWeek", "start_date", date)
-	return a.store.ListEventsForWeek(date)
-}
-
-func (a *App) ListEventsForMonth(date time.Time) []Event {
-	a.logg.Debug("App.ListEventsForWeek", "start_date", date)
-	return a.store.ListEventsForMonth(date)
+	return a.store.FilterByInterval(from, to)
 }

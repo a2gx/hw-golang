@@ -4,12 +4,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"time"
+
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
 	"github.com/go-playground/validator/v10"
-	"io"
-	"net/http"
-	"time"
 )
 
 type Handler struct {
@@ -17,29 +17,62 @@ type Handler struct {
 	app  *app.App
 }
 
-func (h *Handler) jsonReadAndValidate(body io.ReadCloser, input any) error {
-	if err := json.NewDecoder(body).Decode(input); err != nil {
+func (h *Handler) jsonResponse(w http.ResponseWriter, status int, data any) {
+	w.WriteHeader(status)
+
+	if data == nil {
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(data); err != nil {
+		h.logg.Error("failed to write response", "error", err)
+	}
+}
+
+func (h *Handler) jsonReadAndValidate(r *http.Request, input any) error {
+	if err := json.NewDecoder(r.Body).Decode(input); err != nil {
 		return fmt.Errorf("invalid request body: %v", err)
 	}
 	if err := validator.New().Struct(input); err != nil {
-		return fmt.Errorf("invalid validate: %v", err)
+		return fmt.Errorf("validation error: %v", err)
 	}
 
 	return nil
+}
+
+func (h *Handler) handleEventsInInterval(w http.ResponseWriter, r *http.Request, days int) {
+	var in struct {
+		Date string `json:"date" validate:"required"`
+	}
+
+	if err := h.jsonReadAndValidate(r, &in); err != nil {
+		h.logg.Error("request error", "error", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	date, err := time.Parse("2006-01-02", in.Date)
+	if err != nil {
+		h.logg.Error("invalid date format", "error", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	events := h.app.EventsInInterval(date, days)
+	h.jsonResponse(w, http.StatusOK, events)
 }
 
 func (h *Handler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 	var in struct {
 		Title       string    `json:"title" validate:"required"`
 		Description string    `json:"description,omitempty"`
-		UserID      string    `json:"user_id" validate:"required"`
 		StartTime   time.Time `json:"start_time" validate:"required"`
 		EndTime     time.Time `json:"end_time" validate:"required,gtfield=StartTime"`
 		NotifyTime  time.Time `json:"notify_time,omitempty"`
 	}
 
-	if err := h.jsonReadAndValidate(r.Body, &in); err != nil {
-		h.logg.Error("Invalid JSON", "error", err)
+	if err := h.jsonReadAndValidate(r, &in); err != nil {
+		h.logg.Error("request error", "error", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -47,50 +80,39 @@ func (h *Handler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 	event, err := h.app.Create(app.Event{
 		Title:       in.Title,
 		Description: in.Description,
-		UserID:      in.UserID,
 		StartTime:   in.StartTime,
 		EndTime:     in.EndTime,
 		NotifyTime:  in.NotifyTime,
 	})
 	if err != nil {
 		h.logg.Error("failed to create event", "error", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	res, err := json.Marshal(event)
-	if err != nil {
-		h.logg.Error("failed to marshal response", "error", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write(res)
+	h.jsonResponse(w, http.StatusOK, event)
 }
 
 func (h *Handler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	var in struct {
 		ID          string    `json:"id" validate:"required"`
 		Title       string    `json:"title,omitempty"`
-		Description string    `json:"description,omitempty" validate:"required"`
-		UserID      string    `json:"user_id,omitempty"`
+		Description string    `json:"description,omitempty"`
 		StartTime   time.Time `json:"start_time,omitempty"`
 		EndTime     time.Time `json:"end_time,omitempty"`
 		NotifyTime  time.Time `json:"notify_time,omitempty"`
 	}
 
-	if err := h.jsonReadAndValidate(r.Body, &in); err != nil {
-		h.logg.Error("Invalid JSON", "error", err)
+	if err := h.jsonReadAndValidate(r, &in); err != nil {
+		h.logg.Error("request error", "error", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	updEvent, err := h.app.Update(app.Event{
+	event, err := h.app.Update(app.Event{
 		ID:          in.ID,
 		Title:       in.Title,
 		Description: in.Description,
-		UserID:      in.UserID,
 		StartTime:   in.StartTime,
 		EndTime:     in.EndTime,
 		NotifyTime:  in.NotifyTime,
@@ -100,21 +122,12 @@ func (h *Handler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 		if errors.Is(err, app.ErrNotFound) {
 			status = http.StatusNotFound
 		}
-
 		h.logg.Error("failed to update event", "error", err)
 		http.Error(w, err.Error(), status)
 		return
 	}
 
-	res, err := json.Marshal(updEvent)
-	if err != nil {
-		h.logg.Error("failed to marshal response", "error", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write(res)
+	h.jsonResponse(w, http.StatusOK, event)
 }
 
 func (h *Handler) DeleteEvent(w http.ResponseWriter, r *http.Request) {
@@ -122,110 +135,29 @@ func (h *Handler) DeleteEvent(w http.ResponseWriter, r *http.Request) {
 		ID string `json:"id" validate:"required"`
 	}
 
-	if err := h.jsonReadAndValidate(r.Body, &in); err != nil {
-		h.logg.Error("Invalid JSON", "error", err)
+	if err := h.jsonReadAndValidate(r, &in); err != nil {
+		h.logg.Error("request error", "error", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err := h.app.Delete(app.Event{
-		ID: in.ID,
-	})
-	if err != nil {
+	if err := h.app.Delete(app.Event{ID: in.ID}); err != nil {
 		h.logg.Error("failed to delete event", "error", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
+	h.jsonResponse(w, http.StatusOK, nil)
 }
 
 func (h *Handler) ListEventsForDay(w http.ResponseWriter, r *http.Request) {
-	var in struct {
-		Date string `json:"date" validate:"required"`
-	}
-
-	if err := h.jsonReadAndValidate(r.Body, &in); err != nil {
-		h.logg.Error("Invalid JSON", "error", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	date, err := time.Parse("2006-01-02", in.Date)
-	if err != nil {
-		h.logg.Error("failed to parse date", "error", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	events := h.app.ListEventsInInterval(date, 1)
-	res, err := json.Marshal(events)
-	if err != nil {
-		h.logg.Error("failed to marshal response", "error", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write(res)
+	h.handleEventsInInterval(w, r, 1)
 }
 
 func (h *Handler) ListEventsForWeek(w http.ResponseWriter, r *http.Request) {
-	var in struct {
-		Date string `json:"date" validate:"required"`
-	}
-
-	if err := h.jsonReadAndValidate(r.Body, &in); err != nil {
-		h.logg.Error("Invalid JSON", "error", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	date, err := time.Parse("2006-01-02", in.Date)
-	if err != nil {
-		h.logg.Error("failed to parse date", "error", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	events := h.app.ListEventsInInterval(date, 7)
-	res, err := json.Marshal(events)
-	if err != nil {
-		h.logg.Error("failed to marshal response", "error", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write(res)
+	h.handleEventsInInterval(w, r, 7)
 }
 
 func (h *Handler) ListEventsForMonth(w http.ResponseWriter, r *http.Request) {
-	var in struct {
-		Date string `json:"date" validate:"required"`
-	}
-
-	if err := h.jsonReadAndValidate(r.Body, &in); err != nil {
-		h.logg.Error("Invalid JSON", "error", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	date, err := time.Parse("2006-01-02", in.Date)
-	if err != nil {
-		h.logg.Error("failed to parse date", "error", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	events := h.app.ListEventsInInterval(date, 7)
-	res, err := json.Marshal(events)
-	if err != nil {
-		h.logg.Error("failed to marshal response", "error", err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write(res)
+	h.handleEventsInInterval(w, r, 30)
 }

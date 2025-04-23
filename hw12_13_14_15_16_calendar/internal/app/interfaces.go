@@ -10,9 +10,7 @@ type Application interface {
 	Update(event Event) (Event, error)
 	Delete(event Event) error
 
-	ListEventsForDay(day time.Time) []Event
-	ListEventsForWeek(week time.Time) []Event
-	ListEventsForMonth(month time.Time) []Event
+	EventsInInterval(date time.Time, days int) []Event
 }
 
 type Storage interface {
@@ -23,12 +21,8 @@ type Storage interface {
 	UpdateEvent(event Event) (Event, error)
 	DeleteEvent(event Event) error
 
-	ListEventsForDay(day time.Time) []Event
-	ListEventsForWeek(week time.Time) []Event
-	ListEventsForMonth(month time.Time) []Event
-
 	GetById(eventId string) (Event, error)
-	ListEventsInInterval(st, fn time.Time) []Event
+	FilterByInterval(st, fn time.Time) []Event
 }
 
 type Server interface {

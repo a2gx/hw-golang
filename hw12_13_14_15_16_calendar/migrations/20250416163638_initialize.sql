@@ -2,11 +2,12 @@
 -- +goose StatementBegin
 CREATE TABLE events
 (
-    id          UUID PRIMARY KEY,
+    id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title       TEXT      NOT NULL,
+    description TEXT,
     start_time  TIMESTAMP NOT NULL,
     end_time    TIMESTAMP NOT NULL,
-    description TEXT
+    notify_time TIMESTAMP
 );
 -- +goose StatementEnd
 

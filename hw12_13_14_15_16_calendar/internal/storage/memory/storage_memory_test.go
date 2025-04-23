@@ -20,7 +20,6 @@ func TestStorageMemory(t *testing.T) {
 	event := app.Event{
 		Title:       "Event title",
 		Description: "Event description",
-		UserID:      "Event-User-Id",
 		StartTime:   time.Now(),
 		EndTime:     time.Now().Add(1 * time.Hour),
 	}
@@ -33,7 +32,7 @@ func TestStorageMemory(t *testing.T) {
 		t.Error("expected non-empty event ID")
 	}
 
-	events := store.ListEventsForDay(createEvent.StartTime)
+	events := store.FilterByInterval(time.Now(), time.Now().Add(1*time.Hour))
 	if len(events) == 0 {
 		t.Error("expected to find the created event")
 	}
@@ -52,7 +51,7 @@ func TestStorageMemory(t *testing.T) {
 		t.Fatalf("failed to delete event: %v", err)
 	}
 
-	events = store.ListEventsForDay(createEvent.StartTime)
+	events = store.FilterByInterval(time.Now(), time.Now().Add(1*time.Hour))
 	if len(events) != 0 {
 		t.Error("expected no events after deletion")
 	}
