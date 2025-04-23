@@ -93,9 +93,9 @@ func (s *Storage) Close() error {
 }
 
 func (s *Storage) CreateEvent(event app.Event) (app.Event, error) {
-	query := `INSERT INTO events (id, title, start_time, end_time, description) 
+	query := `INSERT INTO events (title, description, start_time, end_time, notify_time) 
 			  VALUES ($1, $2, $3, $4, $5) RETURNING id`
-	err := s.db.QueryRow(query, event.ID, event.Title, event.StartTime, event.EndTime, event.Description).Scan(&event.ID)
+	err := s.db.QueryRow(query, event.Title, event.Description, event.StartTime, event.EndTime, event.NotifyTime).Scan(&event.ID)
 	if err != nil {
 		s.logg.Error("failed to create event", "error", err)
 		return app.Event{}, err
