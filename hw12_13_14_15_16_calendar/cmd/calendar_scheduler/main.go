@@ -150,7 +150,6 @@ func main() {
 			if err := store.DeleteOldEvents(); err != nil {
 				logg.Warn("failed to delete old events", "error", err)
 			}
-
 		}
 	}
 }
