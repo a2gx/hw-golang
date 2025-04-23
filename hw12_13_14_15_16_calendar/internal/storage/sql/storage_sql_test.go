@@ -83,9 +83,20 @@ func TestStorage_FetchEventsToNotify(t *testing.T) {
 
 	storage := &Storage{logg: logg, db: db}
 
-	mock.ExpectQuery("SELECT id, title, description, start_time, end_time, notify_time FROM events WHERE notify_time <= NOW()").
-		WillReturnRows(sqlmock.NewRows([]string{"id", "title", "description", "start_time", "end_time", "notify_time"}).
-			AddRow("1", "Test Event", "Test Description", time.Now(), time.Now().Add(1*time.Hour), time.Now().Add(-10*time.Minute)))
+	mock.ExpectQuery(
+		"SELECT id, title, description, start_time, end_time, notify_time " +
+			"FROM events WHERE notify_time <= NOW()",
+	).WillReturnRows(
+		sqlmock.NewRows([]string{"id", "title", "description", "start_time", "end_time", "notify_time"}).
+			AddRow(
+				"1",
+				"Test Event",
+				"Test Description",
+				time.Now(),
+				time.Now().Add(1*time.Hour),
+				time.Now().Add(-10*time.Minute),
+			),
+	)
 
 	events, err := storage.FetchEventsToNotify()
 	require.NoError(t, err)
