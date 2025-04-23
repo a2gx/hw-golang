@@ -23,7 +23,7 @@ func New(addr string, logg *logger.Logger, app *app.App) *Server {
 	mux := http.NewServeMux()
 	h := &Handler{logg, app}
 
-	mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/ping", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
 
