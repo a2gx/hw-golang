@@ -80,6 +80,23 @@ func (s *Storage) DeleteEvent(event app.Event) error {
 	return nil
 }
 
+func (s *Storage) ListEventsInInterval(st, fn time.Time) []app.Event {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var result []app.Event
+	for _, e := range s.events {
+		if e.StartTime.Before(fn) && e.EndTime.After(st) {
+			result = append(result, e)
+		}
+	}
+
+	s.logg.Debug("events listed for day", "start_date", st, "end_date", fn, "count", len(result))
+	return result
+}
+
+// next need kill...
+
 func (s *Storage) ListEventsForDay(date time.Time) []app.Event {
 	s.mu.RLock()
 	defer s.mu.RUnlock()

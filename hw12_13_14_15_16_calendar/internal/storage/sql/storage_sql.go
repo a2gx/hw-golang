@@ -106,6 +106,11 @@ func (s *Storage) DeleteEvent(event app.Event) error {
 	return nil
 }
 
+func (s *Storage) ListEventsInInterval(st, fn time.Time) []app.Event {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (s *Storage) ListEventsForDay(day time.Time) []app.Event {
 	start, end := tools.GetDateInterval(day, 1)
 	events, err := s.selectEventsInInterval(start, end)

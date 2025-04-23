@@ -42,12 +42,19 @@ func (a *App) mergeEvents(existing, updates Event) Event {
 	return existing
 }
 
+func (a *App) getDateInterval(date time.Time, add int) (start, finish time.Time) {
+	date = time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
+	return date, date.AddDate(0, 0, add)
+}
+
 func (a *App) Create(event Event) (Event, error) {
 	a.logg.Debug("App.Create", "event", event)
 	return a.store.CreateEvent(event)
 }
 
 func (a *App) Update(event Event) (Event, error) {
+	a.logg.Debug("App.Update", "event", event)
+
 	if event.ID == "" {
 		return Event{}, ErrIdRequired
 	}
@@ -57,8 +64,6 @@ func (a *App) Update(event Event) (Event, error) {
 		return Event{}, err
 	}
 
-	a.logg.Debug("App.Update", "event", event)
-
 	event = a.mergeEvents(existingEvent, event)
 	return a.store.UpdateEvent(event)
 }
@@ -66,6 +71,13 @@ func (a *App) Update(event Event) (Event, error) {
 func (a *App) Delete(event Event) error {
 	a.logg.Debug("App.Delete", "event", event)
 	return a.store.DeleteEvent(event)
+}
+
+func (a *App) ListEventsInInterval(from time.Time, days int) []Event {
+	a.logg.Debug("App.ListEventsInInterval", "start_date", from, "days", days)
+
+	st, fn := a.getDateInterval(from, days)
+	return a.store.ListEventsInInterval(st, fn)
 }
 
 func (a *App) ListEventsForDay(date time.Time) []Event {

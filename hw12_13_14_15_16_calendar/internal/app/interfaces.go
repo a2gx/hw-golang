@@ -28,6 +28,7 @@ type Storage interface {
 	ListEventsForMonth(month time.Time) []Event
 
 	GetById(eventId string) (Event, error)
+	ListEventsInInterval(st, fn time.Time) []Event
 }
 
 type Server interface {
