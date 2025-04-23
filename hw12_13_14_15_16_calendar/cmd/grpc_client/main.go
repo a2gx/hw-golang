@@ -28,9 +28,33 @@ func main() {
 	defer cancel()
 
 	// CreateEvent
-	if r, err := c.CreateEvent(ctx, &pb.CreateEventRequest{}); err != nil {
-		slog.Error("CreateEvent failed: " + err.Error())
-	} else {
-		slog.Info("CreateEvent success: " + r.String())
+	createReq := &pb.CreateEventRequest{
+		Title:       "Meeting",
+		Description: "Team meeting to discuss project updates",
+		StartTime:   time.Now().Format(time.RFC3339),
+		EndTime:     time.Now().Add(1 * time.Hour).Format(time.RFC3339),
+		NotifyTime:  time.Now().Add(-10 * time.Minute).Format(time.RFC3339),
 	}
+	createResp, err := c.CreateEvent(ctx, createReq)
+	if err != nil {
+		slog.Error("CreateEvent failed: " + err.Error())
+		return
+	}
+	slog.Info("CreateEvent success: " + createResp.String())
+
+	// UpdateEvent
+	updateReq := &pb.UpdateEventRequest{
+		Id:          createResp.Event.Id,
+		Title:       "Updated Meeting",
+		Description: "Updated description for the meeting",
+		StartTime:   time.Now().Add(2 * time.Hour).Format(time.RFC3339),
+		EndTime:     time.Now().Add(3 * time.Hour).Format(time.RFC3339),
+		NotifyTime:  time.Now().Add(-15 * time.Minute).Format(time.RFC3339),
+	}
+	updateResp, err := c.UpdateEvent(ctx, updateReq)
+	if err != nil {
+		slog.Error("UpdateEvent failed: " + err.Error())
+		return
+	}
+	slog.Info("UpdateEvent success: " + updateResp.String())
 }

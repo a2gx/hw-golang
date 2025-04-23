@@ -6,43 +6,79 @@ option go_package = "github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/api;c
 
 service Calendar {
   rpc CreateEvent(CreateEventRequest) returns (CreateEventReply) {}
-  //  rpc UpdateEvent(UpdateEventRequest) returns (UpdateEventReply) {}
-  //  rpc DeleteEvent(DeleteEventRequest) returns (DeleteEventReply) {}
-
+  rpc UpdateEvent(UpdateEventRequest) returns (UpdateEventReply) {}
+  rpc DeleteEvent(DeleteEventRequest) returns (DeleteEventReply) {}
+  rpc ListEventsForDay(ListEventsForDayRequest) returns (ListEventsForDayReply) {}
+  rpc ListEventsForWeek(ListEventsForWeekRequest) returns (ListEventsForWeekReply) {}
+  rpc ListEventsForMonth(ListEventsForMonthRequest) returns (ListEventsForMonthReply) {}
 }
 
 message Event {
   string id = 1;
   string title = 2;
   string description = 3;
-  string user_id = 4;
-  string start_time = 5;
-  string end_time = 6;
-  string notify_time = 7;
+  string start_time = 4;
+  string end_time = 5;
+  string notify_time = 6;
 }
 
 // CreateEvent
-message CreateEventRequest {}
-message CreateEventReply {}
+message CreateEventRequest {
+  string title = 1;
+  string description = 2;
+  string start_time = 3;
+  string end_time = 4;
+  string notify_time = 5;
+}
 
-/*
+message CreateEventReply {
+  Event event = 1;
+}
+
 // UpdateEvent
-message UpdateEventRequest {}
-message UpdateEventReply {}
+message UpdateEventRequest {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  string start_time = 4;
+  string end_time = 5;
+  string notify_time = 6;
+}
+
+message UpdateEventReply {
+  Event event = 1;
+}
 
 // DeleteEvent
-message DeleteEventRequest {}
+message DeleteEventRequest {
+  string id = 1;
+}
+
 message DeleteEventReply {}
 
 // ListEventsForDay
-message ListEventsForDayRequest {}
-message ListEventsForDayReply {}
+message ListEventsForDayRequest {
+  string date = 1; // формат: "YYYY-MM-DD"
+}
+
+message ListEventsForDayReply {
+  repeated Event events = 1;
+}
 
 // ListEventsForWeek
-message ListEventsForWeekRequest {}
-message ListEventsForWeekReply {}
+message ListEventsForWeekRequest {
+  string date = 1; // формат: "YYYY-MM-DD"
+}
+
+message ListEventsForWeekReply {
+  repeated Event events = 1;
+}
 
 // ListEventsForMonth
-message ListEventsForMonthRequest {}
-message ListEventsForMonthReply {}
-*/
+message ListEventsForMonthRequest {
+  string date = 1; // формат: "YYYY-MM-DD"
+}
+
+message ListEventsForMonthReply {
+  repeated Event events = 1;
+}
