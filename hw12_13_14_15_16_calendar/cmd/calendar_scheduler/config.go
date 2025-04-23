@@ -33,6 +33,14 @@ type Config struct {
 		Port     int    `mapstructure:"port"`
 	} `mapstructure:"database"`
 
+	RabbitMQ struct {
+		Username string `mapstructure:"username"`
+		Password string `mapstructure:"password"`
+		Queue    string `mapstructure:"queue"`
+		Host     string `mapstructure:"host"`
+		Port     int    `mapstructure:"port"`
+	} `mapstructure:"database"`
+
 	DatabaseDNS string
 }
 

@@ -26,4 +26,12 @@ database:
   username: "root"
   password: "root"
   dbname: "calendar"
+  host: "localhost"
   port: 5433
+
+rabbitmq:
+  username: "guest"
+  password: "guest"
+  queue: "events"   # Название очереди для уведомлений
+  host: "localhost"
+  port: 5672
