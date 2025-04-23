@@ -35,6 +35,17 @@ func (s *Storage) Close() error {
 	return nil
 }
 
+func (s *Storage) GetById(eventId string) (app.Event, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if event, exists := s.events[eventId]; !exists {
+		return app.Event{}, app.ErrNotFound
+	} else {
+		return event, nil
+	}
+}
+
 func (s *Storage) CreateEvent(event app.Event) (app.Event, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

@@ -64,6 +64,11 @@ func (s *Storage) Close() error {
 	return nil
 }
 
+func (s *Storage) GetById(eventId string) (app.Event, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (s *Storage) CreateEvent(event app.Event) (app.Event, error) {
 	query := `INSERT INTO events (id, title, start_time, end_time, description) 
 			  VALUES ($1, $2, $3, $4, $5) RETURNING id`

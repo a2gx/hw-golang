@@ -20,18 +20,51 @@ func New(logg *logger.Logger, store Storage) *App {
 	}
 }
 
-func (a *App) CreateEvent(event Event) (Event, error) {
-	a.logg.Debug("App.CreateEvent", "event", event)
+func (a *App) mergeEvents(existing, updates Event) Event {
+	if updates.Title != "" {
+		existing.Title = updates.Title
+	}
+	if updates.Description != "" {
+		existing.Description = updates.Description
+	}
+	if updates.UserID != "" {
+		existing.UserID = updates.UserID
+	}
+	if !updates.StartTime.IsZero() {
+		existing.StartTime = updates.StartTime
+	}
+	if !updates.EndTime.IsZero() {
+		existing.EndTime = updates.EndTime
+	}
+	if !updates.NotifyTime.IsZero() {
+		existing.NotifyTime = updates.NotifyTime
+	}
+	return existing
+}
+
+func (a *App) Create(event Event) (Event, error) {
+	a.logg.Debug("App.Create", "event", event)
 	return a.store.CreateEvent(event)
 }
 
-func (a *App) UpdateEvent(event Event) (Event, error) {
-	a.logg.Debug("App.UpdateEvent", "event", event)
+func (a *App) Update(event Event) (Event, error) {
+	if event.ID == "" {
+		return Event{}, ErrIdRequired
+	}
+
+	existingEvent, err := a.store.GetById(event.ID)
+	if err != nil {
+		return Event{}, err
+	}
+
+	a.logg.Debug("App.Update", "event", event)
+
+	event = a.mergeEvents(existingEvent, event)
 	return a.store.UpdateEvent(event)
 }
 
-func (a *App) DeleteEvent(event Event) error {
-	a.logg.Debug("App.DeleteEvent", "event", event)
+func (a *App) Delete(event Event) error {
+	a.logg.Debug("App.Delete", "event", event)
 	return a.store.DeleteEvent(event)
 }
 

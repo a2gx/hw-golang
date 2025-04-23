@@ -1,10 +1,13 @@
 package serverhttp
 
 import (
-	"net/http"
-
+	"encoding/json"
+	"errors"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
+	"github.com/go-playground/validator/v10"
+	"net/http"
+	"time"
 )
 
 type Handler struct {
@@ -12,42 +15,129 @@ type Handler struct {
 	app  *app.App
 }
 
-func (h *Handler) Home(w http.ResponseWriter, _ *http.Request) {
+func (h *Handler) CreateEvent(w http.ResponseWriter, r *http.Request) {
+	var in struct {
+		Title       string    `json:"title" validate:"required"`
+		Description string    `json:"description,omitempty"`
+		UserID      string    `json:"user_id" validate:"required"`
+		StartTime   time.Time `json:"start_time" validate:"required"`
+		EndTime     time.Time `json:"end_time" validate:"required,gtfield=StartTime"`
+		NotifyTime  time.Time `json:"notify_time,omitempty"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		h.logg.Error("invalid request body", "error", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if err := validator.New().Struct(&in); err != nil {
+		h.logg.Error("validation error", "error", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	event, err := h.app.Create(app.Event{
+		Title:       in.Title,
+		Description: in.Description,
+		UserID:      in.UserID,
+		StartTime:   in.StartTime,
+		EndTime:     in.EndTime,
+		NotifyTime:  in.NotifyTime,
+	})
+	if err != nil {
+		h.logg.Error("failed to create event", "error", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	res, err := json.Marshal(event)
+	if err != nil {
+		h.logg.Error("failed to marshal response", "error", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte("home"))
+	_, _ = w.Write(res)
 }
 
-func (h *Handler) Ping(w http.ResponseWriter, _ *http.Request) {
+func (h *Handler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
+	var in struct {
+		ID          string    `json:"id" validate:"required"`
+		Title       string    `json:"title,omitempty"`
+		Description string    `json:"description,omitempty" validate:"required"`
+		UserID      string    `json:"user_id,omitempty"`
+		StartTime   time.Time `json:"start_time,omitempty"`
+		EndTime     time.Time `json:"end_time,omitempty"`
+		NotifyTime  time.Time `json:"notify_time,omitempty"`
+	}
+
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		h.logg.Error("invalid request body", "error", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if err := validator.New().Struct(&in); err != nil {
+		h.logg.Error("validation error", "error", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	updEvent, err := h.app.Update(app.Event{
+		ID:          in.ID,
+		Title:       in.Title,
+		Description: in.Description,
+		UserID:      in.UserID,
+		StartTime:   in.StartTime,
+		EndTime:     in.EndTime,
+		NotifyTime:  in.NotifyTime,
+	})
+	if err != nil {
+		status := http.StatusInternalServerError
+		if errors.Is(err, app.ErrNotFound) {
+			status = http.StatusNotFound
+		}
+
+		h.logg.Error("failed to update event", "error", err)
+		http.Error(w, err.Error(), status)
+		return
+	}
+
+	res, err := json.Marshal(updEvent)
+	if err != nil {
+		h.logg.Error("failed to marshal response", "error", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte("pong"))
+	_, _ = w.Write(res)
 }
 
-func (h *Handler) CreateEvent(w http.ResponseWriter, _ *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte("CreateEvent"))
-}
+func (h *Handler) DeleteEvent(w http.ResponseWriter, r *http.Request) {
+	var in struct {
+		ID string `json:"id" validate:"required"`
+	}
 
-func (h *Handler) UpdateEvent(w http.ResponseWriter, _ *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte("UpdateEvent"))
-}
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		h.logg.Error("invalid request body", "error", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	if err := validator.New().Struct(&in); err != nil {
+		h.logg.Error("validation error", "error", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
-func (h *Handler) DeleteEvent(w http.ResponseWriter, _ *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte("DeleteEvent"))
-}
+	err := h.app.Delete(app.Event{
+		ID: in.ID,
+	})
+	if err != nil {
+		h.logg.Error("failed to delete event", "error", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-func (h *Handler) ListEventsForDay(w http.ResponseWriter, _ *http.Request) {
 	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte("ListEventsForDay"))
-}
-
-func (h *Handler) ListEventsForWeek(w http.ResponseWriter, _ *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte("ListEventsForWeek"))
-}
-
-func (h *Handler) ListEventsForMonth(w http.ResponseWriter, _ *http.Request) {
-	w.WriteHeader(http.StatusOK)
-	_, _ = w.Write([]byte("ListEventsForMonth"))
 }
