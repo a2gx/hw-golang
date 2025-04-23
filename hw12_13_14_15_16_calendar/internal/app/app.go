@@ -48,10 +48,10 @@ func (a *App) Update(event Event) (Event, error) {
 	a.logg.Debug("App.Update", "event", event)
 
 	if event.ID == "" {
-		return Event{}, ErrIdRequired
+		return Event{}, ErrIDRequired
 	}
 
-	existingEvent, err := a.store.GetById(event.ID)
+	existingEvent, err := a.store.GetByID(event.ID)
 	if err != nil {
 		return Event{}, err
 	}

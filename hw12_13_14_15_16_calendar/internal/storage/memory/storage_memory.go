@@ -68,15 +68,16 @@ func (s *Storage) DeleteEvent(event app.Event) error {
 	return nil
 }
 
-func (s *Storage) GetById(eventId string) (app.Event, error) {
+func (s *Storage) GetByID(eventID string) (app.Event, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if event, exists := s.events[eventId]; !exists {
+	event, exists := s.events[eventID]
+	if !exists {
 		return app.Event{}, app.ErrNotFound
-	} else {
-		return event, nil
 	}
+
+	return event, nil
 }
 
 func (s *Storage) FilterByInterval(st, fn time.Time) []app.Event {

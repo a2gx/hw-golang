@@ -43,15 +43,13 @@ func (s *Storage) selectEventsInInterval(start, end time.Time) ([]app.Event, err
 	var events []app.Event
 	for rows.Next() {
 		var event app.Event
-		err := rows.Scan(
+		if err := rows.Scan(
 			&event.ID,
 			&event.Title,
 			&event.Description,
 			&event.StartTime,
 			&event.EndTime,
-		)
-
-		if err != nil {
+		); err != nil {
 			s.logg.Error("failed to scan event", "error", err)
 			continue
 		}
@@ -95,7 +93,14 @@ func (s *Storage) Close() error {
 func (s *Storage) CreateEvent(event app.Event) (app.Event, error) {
 	query := `INSERT INTO events (title, description, start_time, end_time, notify_time) 
 			  VALUES ($1, $2, $3, $4, $5) RETURNING id`
-	err := s.db.QueryRow(query, event.Title, event.Description, event.StartTime, event.EndTime, event.NotifyTime).Scan(&event.ID)
+	err := s.db.QueryRow(
+		query,
+		event.Title,
+		event.Description,
+		event.StartTime,
+		event.EndTime,
+		event.NotifyTime,
+	).Scan(&event.ID)
 	if err != nil {
 		s.logg.Error("failed to create event", "error", err)
 		return app.Event{}, err
@@ -129,20 +134,18 @@ func (s *Storage) DeleteEvent(event app.Event) error {
 	return nil
 }
 
-func (s *Storage) GetById(eventId string) (app.Event, error) {
+func (s *Storage) GetByID(eventID string) (app.Event, error) {
 	query := `SELECT id, title, description, start_time, end_time FROM events WHERE id = $1`
-	row := s.db.QueryRow(query, eventId)
+	row := s.db.QueryRow(query, eventID)
 
 	var event app.Event
-	err := row.Scan(
+	if err := row.Scan(
 		&event.ID,
 		&event.Title,
 		&event.Description,
 		&event.StartTime,
 		&event.EndTime,
-	)
-
-	if err != nil {
+	); err != nil {
 		s.logg.Error("failed to get event by ID", "error", err)
 		return app.Event{}, err
 	}

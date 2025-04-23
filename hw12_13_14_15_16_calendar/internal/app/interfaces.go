@@ -21,7 +21,7 @@ type Storage interface {
 	UpdateEvent(event Event) (Event, error)
 	DeleteEvent(event Event) error
 
-	GetById(eventId string) (Event, error)
+	GetByID(eventID string) (Event, error)
 	FilterByInterval(st, fn time.Time) []Event
 }
 

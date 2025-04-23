@@ -68,7 +68,10 @@ func (h *Handler) DeleteEvent(_ context.Context, req *pb.DeleteEventRequest) (*p
 	return &pb.DeleteEventReply{}, nil
 }
 
-func (h *Handler) ListEventsForDay(_ context.Context, req *pb.ListEventsForDayRequest) (*pb.ListEventsForDayReply, error) {
+func (h *Handler) ListEventsForDay(
+	_ context.Context,
+	req *pb.ListEventsForDayRequest,
+) (*pb.ListEventsForDayReply, error) {
 	h.logg.Info("gRPC ListEventsForDay called", "request", req)
 
 	date, err := time.Parse("2006-01-02", req.Date)
@@ -83,7 +86,10 @@ func (h *Handler) ListEventsForDay(_ context.Context, req *pb.ListEventsForDayRe
 	}, nil
 }
 
-func (h *Handler) ListEventsForWeek(_ context.Context, req *pb.ListEventsForWeekRequest) (*pb.ListEventsForWeekReply, error) {
+func (h *Handler) ListEventsForWeek(
+	_ context.Context,
+	req *pb.ListEventsForWeekRequest,
+) (*pb.ListEventsForWeekReply, error) {
 	h.logg.Info("gRPC ListEventsForWeek called", "request", req)
 
 	date, err := time.Parse("2006-01-02", req.Date)
@@ -98,7 +104,10 @@ func (h *Handler) ListEventsForWeek(_ context.Context, req *pb.ListEventsForWeek
 	}, nil
 }
 
-func (h *Handler) ListEventsForMonth(_ context.Context, req *pb.ListEventsForMonthRequest) (*pb.ListEventsForMonthReply, error) {
+func (h *Handler) ListEventsForMonth(
+	_ context.Context,
+	req *pb.ListEventsForMonthRequest,
+) (*pb.ListEventsForMonthReply, error) {
 	h.logg.Info("gRPC ListEventsForMonth called", "request", req)
 
 	date, err := time.Parse("2006-01-02", req.Date)

@@ -17,8 +17,8 @@ type Handler struct {
 	app  *app.App
 }
 
-func (h *Handler) jsonResponse(w http.ResponseWriter, status int, data any) {
-	w.WriteHeader(status)
+func (h *Handler) jsonResponse(w http.ResponseWriter, data any) {
+	w.WriteHeader(http.StatusOK)
 
 	if data == nil {
 		return
@@ -31,10 +31,10 @@ func (h *Handler) jsonResponse(w http.ResponseWriter, status int, data any) {
 
 func (h *Handler) jsonReadAndValidate(r *http.Request, input any) error {
 	if err := json.NewDecoder(r.Body).Decode(input); err != nil {
-		return fmt.Errorf("invalid request body: %v", err)
+		return fmt.Errorf("invalid request body: %w", err)
 	}
 	if err := validator.New().Struct(input); err != nil {
-		return fmt.Errorf("validation error: %v", err)
+		return fmt.Errorf("validation error: %w", err)
 	}
 
 	return nil
@@ -59,7 +59,7 @@ func (h *Handler) handleEventsInInterval(w http.ResponseWriter, r *http.Request,
 	}
 
 	events := h.app.EventsInInterval(date, days)
-	h.jsonResponse(w, http.StatusOK, events)
+	h.jsonResponse(w, events)
 }
 
 func (h *Handler) CreateEvent(w http.ResponseWriter, r *http.Request) {
@@ -90,7 +90,7 @@ func (h *Handler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.jsonResponse(w, http.StatusOK, event)
+	h.jsonResponse(w, event)
 }
 
 func (h *Handler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
@@ -127,7 +127,7 @@ func (h *Handler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.jsonResponse(w, http.StatusOK, event)
+	h.jsonResponse(w, event)
 }
 
 func (h *Handler) DeleteEvent(w http.ResponseWriter, r *http.Request) {
@@ -147,7 +147,7 @@ func (h *Handler) DeleteEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.jsonResponse(w, http.StatusOK, nil)
+	h.jsonResponse(w, nil)
 }
 
 func (h *Handler) ListEventsForDay(w http.ResponseWriter, r *http.Request) {

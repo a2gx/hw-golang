@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/peer"
 )

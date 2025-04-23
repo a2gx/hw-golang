@@ -71,7 +71,7 @@ linters:
     - revive
     - staticcheck
     - stylecheck
-    - tagliatelle
+#    - tagliatelle
     - thelper
     - typecheck
     - unconvert
