@@ -23,6 +23,10 @@ func New(addr string, logg *logger.Logger, app *app.App) *Server {
 	mux := http.NewServeMux()
 	h := &Handler{logg, app}
 
+	mux.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
 	mux.HandleFunc("POST /event", h.CreateEvent)
 	mux.HandleFunc("PUT /event", h.UpdateEvent)
 	mux.HandleFunc("DELETE /event", h.DeleteEvent)
