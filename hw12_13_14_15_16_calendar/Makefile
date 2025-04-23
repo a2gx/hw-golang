@@ -13,8 +13,12 @@ build:
 run: build
 	$(BIN) -config $(CONFIG_FILE)
 
+
 start:
 	go run ./cmd/calendar -config $(CONFIG_FILE)
+
+start-scheduler:
+	go run ./cmd/calendar_scheduler -config $(CONFIG_FILE)
 
 start-grpc:
 	go run ./cmd/grpc_client -config $(CONFIG_FILE)

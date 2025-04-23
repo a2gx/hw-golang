@@ -94,3 +94,11 @@ func (s *Storage) FilterByInterval(st, fn time.Time) []app.Event {
 	s.logg.Debug("events listed for day", "start_date", st, "end_date", fn, "count", len(result))
 	return result
 }
+
+func (s *Storage) FetchEventsToNotify() ([]app.Event, error) {
+	return make([]app.Event, 0), nil
+}
+
+func (s *Storage) DeleteOldEvents() error {
+	return nil
+}
