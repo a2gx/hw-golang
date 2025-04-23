@@ -20,35 +20,56 @@ func New(logg *logger.Logger, store Storage) *App {
 	}
 }
 
-func (a *App) CreateEvent(event Event) (Event, error) {
-	a.logg.Debug("App.CreateEvent", "event", event)
-	return event, nil
+func (a *App) mergeEvents(existing, updates Event) Event {
+	if updates.Title != "" {
+		existing.Title = updates.Title
+	}
+	if updates.Description != "" {
+		existing.Description = updates.Description
+	}
+	if !updates.StartTime.IsZero() {
+		existing.StartTime = updates.StartTime
+	}
+	if !updates.EndTime.IsZero() {
+		existing.EndTime = updates.EndTime
+	}
+	if !updates.NotifyTime.IsZero() {
+		existing.NotifyTime = updates.NotifyTime
+	}
+	return existing
 }
 
-func (a *App) UpdateEvent(event Event) (Event, error) {
-	a.logg.Debug("App.UpdateEvent", "event", event)
-	return event, nil
+func (a *App) Create(event Event) (Event, error) {
+	a.logg.Debug("App.Create", "event", event)
+	return a.store.CreateEvent(event)
 }
 
-func (a *App) DeleteEvent(event Event) error {
-	a.logg.Debug("App.DeleteEvent", "event", event)
-	return nil
+func (a *App) Update(event Event) (Event, error) {
+	a.logg.Debug("App.Update", "event", event)
+
+	if event.ID == "" {
+		return Event{}, ErrIDRequired
+	}
+
+	existingEvent, err := a.store.GetByID(event.ID)
+	if err != nil {
+		return Event{}, err
+	}
+
+	event = a.mergeEvents(existingEvent, event)
+	return a.store.UpdateEvent(event)
 }
 
-func (a *App) ListEventsForDay(date time.Time) []Event {
-	a.logg.Debug("App.ListEventsForDay", "start_date", date)
-	events := make([]Event, 0)
-	return events
+func (a *App) Delete(event Event) error {
+	a.logg.Debug("App.Delete", "event", event)
+	return a.store.DeleteEvent(event)
 }
 
-func (a *App) ListEventsForWeek(date time.Time) []Event {
-	a.logg.Debug("App.ListEventsForWeek", "start_date", date)
-	events := make([]Event, 0)
-	return events
-}
+func (a *App) EventsInInterval(date time.Time, days int) []Event {
+	a.logg.Debug("App.ListEventsInInterval", "start_date", date, "days", days)
 
-func (a *App) ListEventsForMonth(date time.Time) []Event {
-	a.logg.Debug("App.ListEventsForWeek", "start_date", date)
-	events := make([]Event, 0)
-	return events
+	from := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, date.Location())
+	to := from.AddDate(0, 0, days)
+
+	return a.store.FilterByInterval(from, to)
 }

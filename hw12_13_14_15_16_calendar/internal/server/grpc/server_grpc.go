@@ -12,10 +12,9 @@ import (
 )
 
 type Server struct {
-	pb.UnimplementedCalendarServer
 	grpcServer *grpc.Server
 	logg       *logger.Logger
-	app        *app.App
+	handler    *Handler
 	addr       string
 }
 
@@ -24,8 +23,11 @@ var _ app.Server = &Server{}
 func New(addr string, logg *logger.Logger, app *app.App) *Server {
 	return &Server{
 		logg: logg,
-		app:  app,
 		addr: addr,
+		handler: &Handler{
+			logg: logg,
+			app:  app,
+		},
 	}
 }
 
@@ -35,8 +37,10 @@ func (s *Server) Start(ctx context.Context) error {
 		return fmt.Errorf("failed GRPC to listen: %w", err)
 	}
 
-	s.grpcServer = grpc.NewServer()
-	pb.RegisterCalendarServer(s.grpcServer, s)
+	s.grpcServer = grpc.NewServer(
+		grpc.UnaryInterceptor(loggingInterceptor(s.logg)),
+	)
+	pb.RegisterCalendarServer(s.grpcServer, s.handler)
 
 	s.logg.Debug("start GRPC server", "addr", s.addr)
 	errCh := make(chan error)
@@ -71,9 +75,4 @@ func (s *Server) Stop(ctx context.Context) error {
 	}
 
 	return nil
-}
-
-func (s *Server) CreateEvent(_ context.Context, _ *pb.CreateEventRequest) (*pb.CreateEventReply, error) {
-	s.logg.Info("handler CreateEvent")
-	return &pb.CreateEventReply{}, nil
 }

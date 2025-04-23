@@ -6,13 +6,12 @@ import (
 
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
-	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/tools"
 	_ "github.com/lib/pq" // Регистрируем драйвер PostgreSQL
 )
 
 const (
 	querySelectEventsInInterval = `
-		SELECT id, title, start_time, end_time, description 
+		SELECT id, title, description, start_time, end_time 
 		FROM events 
 		WHERE start_time < $1 AND end_time > $2
 	`
@@ -31,6 +30,33 @@ func New(logg *logger.Logger, dns string) *Storage {
 		logg: logg,
 		dns:  dns,
 	}
+}
+
+func (s *Storage) selectEventsInInterval(start, end time.Time) ([]app.Event, error) {
+	query := querySelectEventsInInterval
+	rows, err := s.db.Query(query, end, start)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var events []app.Event
+	for rows.Next() {
+		var event app.Event
+		if err := rows.Scan(
+			&event.ID,
+			&event.Title,
+			&event.Description,
+			&event.StartTime,
+			&event.EndTime,
+		); err != nil {
+			s.logg.Error("failed to scan event", "error", err)
+			continue
+		}
+		events = append(events, event)
+	}
+
+	return events, nil
 }
 
 func (s *Storage) Connect() error {
@@ -65,9 +91,16 @@ func (s *Storage) Close() error {
 }
 
 func (s *Storage) CreateEvent(event app.Event) (app.Event, error) {
-	query := `INSERT INTO events (id, title, start_time, end_time, description) 
+	query := `INSERT INTO events (title, description, start_time, end_time, notify_time) 
 			  VALUES ($1, $2, $3, $4, $5) RETURNING id`
-	err := s.db.QueryRow(query, event.ID, event.Title, event.StartTime, event.EndTime, event.Description).Scan(&event.ID)
+	err := s.db.QueryRow(
+		query,
+		event.Title,
+		event.Description,
+		event.StartTime,
+		event.EndTime,
+		event.NotifyTime,
+	).Scan(&event.ID)
 	if err != nil {
 		s.logg.Error("failed to create event", "error", err)
 		return app.Event{}, err
@@ -101,8 +134,27 @@ func (s *Storage) DeleteEvent(event app.Event) error {
 	return nil
 }
 
-func (s *Storage) ListEventsForDay(day time.Time) []app.Event {
-	start, end := tools.GetDateInterval(day, 1)
+func (s *Storage) GetByID(eventID string) (app.Event, error) {
+	query := `SELECT id, title, description, start_time, end_time FROM events WHERE id = $1`
+	row := s.db.QueryRow(query, eventID)
+
+	var event app.Event
+	if err := row.Scan(
+		&event.ID,
+		&event.Title,
+		&event.Description,
+		&event.StartTime,
+		&event.EndTime,
+	); err != nil {
+		s.logg.Error("failed to get event by ID", "error", err)
+		return app.Event{}, err
+	}
+
+	s.logg.Debug("event retrieved", "id", event.ID)
+	return event, nil
+}
+
+func (s *Storage) FilterByInterval(start, end time.Time) []app.Event {
 	events, err := s.selectEventsInInterval(start, end)
 	if err != nil {
 		s.logg.Error("failed to list events for day", "error", err)
@@ -111,55 +163,4 @@ func (s *Storage) ListEventsForDay(day time.Time) []app.Event {
 
 	s.logg.Debug("events listed for day", "start_date", start, "end_date", end, "count", len(events))
 	return events
-}
-
-func (s *Storage) ListEventsForWeek(week time.Time) []app.Event {
-	start, end := tools.GetDateInterval(week, 7)
-	events, err := s.selectEventsInInterval(start, end)
-	if err != nil {
-		s.logg.Error("failed to list events for week", "error", err)
-		return nil
-	}
-
-	s.logg.Debug("events listed for week", "start_date", start, "end_date", end, "count", len(events))
-	return events
-}
-
-func (s *Storage) ListEventsForMonth(month time.Time) []app.Event {
-	start, end := tools.GetDateInterval(month, 30)
-	events, err := s.selectEventsInInterval(start, end)
-	if err != nil {
-		s.logg.Error("failed to list events for month", "error", err)
-		return nil
-	}
-
-	s.logg.Debug("events listed for month", "start_date", start, "end_date", end, "count", len(events))
-	return events
-}
-
-func (s *Storage) selectEventsInInterval(start, end time.Time) ([]app.Event, error) {
-	query := querySelectEventsInInterval
-	rows, err := s.db.Query(query, end, start)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var events []app.Event
-	for rows.Next() {
-		var event app.Event
-		if err := rows.Scan(
-			&event.ID,
-			&event.Title,
-			&event.StartTime,
-			&event.EndTime,
-			&event.Description,
-		); err != nil {
-			s.logg.Error("failed to scan event", "error", err)
-			continue
-		}
-		events = append(events, event)
-	}
-
-	return events, nil
 }

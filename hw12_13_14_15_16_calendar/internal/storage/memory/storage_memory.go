@@ -6,7 +6,6 @@ import (
 
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/internal/app"
 	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/logger"
-	"github.com/alxbuylov/hw-golang/hw12_13_14_15_calendar/pkg/tools"
 	"github.com/google/uuid"
 )
 
@@ -69,13 +68,23 @@ func (s *Storage) DeleteEvent(event app.Event) error {
 	return nil
 }
 
-func (s *Storage) ListEventsForDay(date time.Time) []app.Event {
+func (s *Storage) GetByID(eventID string) (app.Event, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	event, exists := s.events[eventID]
+	if !exists {
+		return app.Event{}, app.ErrNotFound
+	}
+
+	return event, nil
+}
+
+func (s *Storage) FilterByInterval(st, fn time.Time) []app.Event {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	var result []app.Event
-	st, fn := tools.GetDateInterval(date, 1) // +1 день, только указанный день
-
 	for _, e := range s.events {
 		if e.StartTime.Before(fn) && e.EndTime.After(st) {
 			result = append(result, e)
@@ -83,39 +92,5 @@ func (s *Storage) ListEventsForDay(date time.Time) []app.Event {
 	}
 
 	s.logg.Debug("events listed for day", "start_date", st, "end_date", fn, "count", len(result))
-	return result
-}
-
-func (s *Storage) ListEventsForWeek(date time.Time) []app.Event {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	var result []app.Event
-	st, fn := tools.GetDateInterval(date, 7) // +7 дней
-
-	for _, e := range s.events {
-		if e.StartTime.Before(fn) && e.EndTime.After(st) {
-			result = append(result, e)
-		}
-	}
-
-	s.logg.Debug("events listed for week", "start_date", st, "end_date", fn, "count", len(result))
-	return result
-}
-
-func (s *Storage) ListEventsForMonth(date time.Time) []app.Event {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
-
-	var result []app.Event
-	st, fn := tools.GetDateInterval(date, 30) // +30 дней
-
-	for _, e := range s.events {
-		if e.StartTime.Before(fn) && e.EndTime.After(st) {
-			result = append(result, e)
-		}
-	}
-
-	s.logg.Debug("events listed for month", "start_date", st, "end_date", fn, "count", len(result))
 	return result
 }

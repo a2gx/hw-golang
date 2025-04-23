@@ -23,7 +23,16 @@ func New(addr string, logg *logger.Logger, app *app.App) *Server {
 	mux := http.NewServeMux()
 	h := &Handler{logg, app}
 
-	mux.HandleFunc("/ping", h.GetPing)
+	mux.HandleFunc("/ping", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+
+	mux.HandleFunc("POST /event", h.CreateEvent)
+	mux.HandleFunc("PUT /event", h.UpdateEvent)
+	mux.HandleFunc("DELETE /event", h.DeleteEvent)
+	mux.HandleFunc("GET /events-day", h.ListEventsForDay)
+	mux.HandleFunc("GET /events-week", h.ListEventsForWeek)
+	mux.HandleFunc("GET /events-month", h.ListEventsForMonth)
 
 	srv := &http.Server{
 		Addr:         addr,
@@ -34,6 +43,8 @@ func New(addr string, logg *logger.Logger, app *app.App) *Server {
 		Handler: applyMiddleware(
 			mux,
 			loggingMiddleware,
+			maxBytesMiddleware,
+			panicMiddleware,
 		),
 	}
 

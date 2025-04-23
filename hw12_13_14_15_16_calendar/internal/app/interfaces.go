@@ -6,20 +6,23 @@ import (
 )
 
 type Application interface {
+	Create(event Event) (Event, error)
+	Update(event Event) (Event, error)
+	Delete(event Event) error
+
+	EventsInInterval(date time.Time, days int) []Event
+}
+
+type Storage interface {
+	Connect() error
+	Close() error
+
 	CreateEvent(event Event) (Event, error)
 	UpdateEvent(event Event) (Event, error)
 	DeleteEvent(event Event) error
 
-	ListEventsForDay(day time.Time) []Event
-	ListEventsForWeek(week time.Time) []Event
-	ListEventsForMonth(month time.Time) []Event
-}
-
-type Storage interface {
-	Application
-
-	Connect() error
-	Close() error
+	GetByID(eventID string) (Event, error)
+	FilterByInterval(st, fn time.Time) []Event
 }
 
 type Server interface {

@@ -1,7 +1,6 @@
 package serverhttp
 
 import (
-	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
@@ -22,17 +21,36 @@ func loggingMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 		latency := time.Since(start)
 
-		msg := fmt.Sprintf(
-			"%s [%s] %s %s %s %dms '%s'",
-			r.RemoteAddr,
-			start.Format("02/Jan/2006:15:04:05 -0700"),
-			r.Method,
-			r.RequestURI,
-			r.Proto,
-			latency.Milliseconds(),
-			r.UserAgent(),
+		slog.Info(
+			"HTTP request",
+			"remote_addr", r.RemoteAddr,
+			"time", start.Format("02/Jan/2006:15:04:05 -0700"),
+			"method", r.Method,
+			"request_uri", r.RequestURI,
+			"proto", r.Proto,
+			"latency_ms", latency.Milliseconds(),
+			"user_agent", r.UserAgent(),
 		)
+	})
+}
 
-		slog.Info(msg)
+func maxBytesMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Limit the size of the request body to 1 MB
+		// https://uptrace.dev/blog/golang-json-rest-api#use-httpmaxbytesreader-to-limit-requests-length
+		r.Body = http.MaxBytesReader(w, r.Body, 1<<20) // 1 MB limit
+		next.ServeHTTP(w, r)
+	})
+}
+
+func panicMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			if err := recover(); err != nil {
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			}
+		}()
+
+		next.ServeHTTP(w, r)
 	})
 }
