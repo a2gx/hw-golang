@@ -100,7 +100,7 @@ func main() {
 		return
 	}
 
-	logg.Info("RabbitMQ queue is ready", "queue", queue.Name)
+	logg.Info("RabbitMQ queue is ready", "queue", cfg.RabbitMQ.Queue)
 
 	// Обработка сигналов для безопасной остановки
 	ctx, cancel := context.WithCancel(context.Background())

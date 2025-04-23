@@ -9,8 +9,8 @@ import (
 
 type Config struct {
 	App struct {
-		Storage string `mapstructure:"storage"`
-		Server  string `mapstructure:"server"`
+		Storage          string `mapstructure:"storage"`
+		TimeoutScheduler int    `mapstructure:"timeout_scheduler"`
 	} `mapstructure:"app"`
 
 	Logger struct {
@@ -20,11 +20,6 @@ type Config struct {
 		AddSource bool   `mapstructure:"add_source"`
 	} `mapstructure:"logger"`
 
-	Server struct {
-		HTTPAddr string `mapstructure:"http_addr"`
-		GRPCAddr string `mapstructure:"grpc_addr"`
-	} `mapstructure:"server"`
-
 	Database struct {
 		Username string `mapstructure:"username"`
 		Password string `mapstructure:"password"`
@@ -33,7 +28,16 @@ type Config struct {
 		Port     int    `mapstructure:"port"`
 	} `mapstructure:"database"`
 
+	RabbitMQ struct {
+		Username string `mapstructure:"username"`
+		Password string `mapstructure:"password"`
+		Queue    string `mapstructure:"queue"`
+		Host     string `mapstructure:"host"`
+		Port     int    `mapstructure:"port"`
+	} `mapstructure:"rabbitmq"`
+
 	DatabaseDNS string
+	RabbitDNS   string
 }
 
 var configFile string
@@ -55,6 +59,13 @@ func NewConfig() (*Config, error) {
 		instance.Database.Dbname,
 		instance.Database.Host,
 		instance.Database.Port,
+	)
+	instance.RabbitDNS = fmt.Sprintf(
+		"amqp://%s:%s@%s:%d/",
+		instance.RabbitMQ.Username,
+		instance.RabbitMQ.Password,
+		instance.RabbitMQ.Host,
+		instance.RabbitMQ.Port,
 	)
 
 	return instance, nil
