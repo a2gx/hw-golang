@@ -6,7 +6,7 @@ app:
   server: "both"
 
   # Периодичность выполнения планировщика (в секундах)
-  timeout_scheduler: 10
+  timeout_scheduler: 60
 
 logger:
   # example: "debug" | "info" | "warn" | "warning" | "error"

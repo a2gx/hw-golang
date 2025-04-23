@@ -10,7 +10,6 @@ import (
 type Config struct {
 	App struct {
 		Storage          string `mapstructure:"storage"`
-		Server           string `mapstructure:"server"`
 		TimeoutScheduler int    `mapstructure:"timeout_scheduler"`
 	} `mapstructure:"app"`
 
@@ -20,11 +19,6 @@ type Config struct {
 		Filename  string `mapstructure:"filename"`
 		AddSource bool   `mapstructure:"add_source"`
 	} `mapstructure:"logger"`
-
-	Server struct {
-		HTTPAddr string `mapstructure:"http_addr"`
-		GRPCAddr string `mapstructure:"grpc_addr"`
-	} `mapstructure:"server"`
 
 	Database struct {
 		Username string `mapstructure:"username"`

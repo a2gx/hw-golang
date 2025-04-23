@@ -9,14 +9,6 @@ import (
 	_ "github.com/lib/pq" // Регистрируем драйвер PostgreSQL
 )
 
-const (
-	querySelectEventsInInterval = `
-		SELECT id, title, description, start_time, end_time 
-		FROM events 
-		WHERE start_time < $1 AND end_time > $2
-	`
-)
-
 type Storage struct {
 	logg *logger.Logger
 	db   *sql.DB
@@ -30,33 +22,6 @@ func New(logg *logger.Logger, dns string) *Storage {
 		logg: logg,
 		dns:  dns,
 	}
-}
-
-func (s *Storage) selectEventsInInterval(start, end time.Time) ([]app.Event, error) {
-	query := querySelectEventsInInterval
-	rows, err := s.db.Query(query, end, start)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	var events []app.Event
-	for rows.Next() {
-		var event app.Event
-		if err := rows.Scan(
-			&event.ID,
-			&event.Title,
-			&event.Description,
-			&event.StartTime,
-			&event.EndTime,
-		); err != nil {
-			s.logg.Error("failed to scan event", "error", err)
-			continue
-		}
-		events = append(events, event)
-	}
-
-	return events, nil
 }
 
 func (s *Storage) Connect() error {
@@ -91,8 +56,10 @@ func (s *Storage) Close() error {
 }
 
 func (s *Storage) CreateEvent(event app.Event) (app.Event, error) {
-	query := `INSERT INTO events (title, description, start_time, end_time, notify_time) 
-			  VALUES ($1, $2, $3, $4, $5) RETURNING id`
+	query := `
+		INSERT INTO events (title, description, start_time, end_time, notify_time) 
+		VALUES ($1, $2, $3, $4, $5) RETURNING id
+`
 	err := s.db.QueryRow(
 		query,
 		event.Title,
@@ -111,7 +78,10 @@ func (s *Storage) CreateEvent(event app.Event) (app.Event, error) {
 }
 
 func (s *Storage) UpdateEvent(event app.Event) (app.Event, error) {
-	query := `UPDATE events SET title = $1, start_time = $2, end_time = $3, description = $4 WHERE id = $5`
+	query := `
+		UPDATE events SET title = $1, start_time = $2, end_time = $3, description = $4 
+		WHERE id = $5
+	`
 	_, err := s.db.Exec(query, event.Title, event.StartTime, event.EndTime, event.Description, event.ID)
 	if err != nil {
 		s.logg.Error("failed to update event", "error", err)
@@ -123,7 +93,10 @@ func (s *Storage) UpdateEvent(event app.Event) (app.Event, error) {
 }
 
 func (s *Storage) DeleteEvent(event app.Event) error {
-	query := `DELETE FROM events WHERE id = $1`
+	query := `
+		DELETE FROM events 
+		WHERE id = $1
+	`
 	_, err := s.db.Exec(query, event.ID)
 	if err != nil {
 		s.logg.Error("failed to delete event", "error", err)
@@ -135,7 +108,11 @@ func (s *Storage) DeleteEvent(event app.Event) error {
 }
 
 func (s *Storage) GetByID(eventID string) (app.Event, error) {
-	query := `SELECT id, title, description, start_time, end_time FROM events WHERE id = $1`
+	query := `
+		SELECT id, title, description, start_time, end_time 
+		FROM events 
+		WHERE id = $1
+	`
 	row := s.db.QueryRow(query, eventID)
 
 	var event app.Event
@@ -155,10 +132,32 @@ func (s *Storage) GetByID(eventID string) (app.Event, error) {
 }
 
 func (s *Storage) FilterByInterval(start, end time.Time) []app.Event {
-	events, err := s.selectEventsInInterval(start, end)
+	query := `
+		SELECT id, title, description, start_time, end_time 
+		FROM events 
+		WHERE start_time < $1 AND end_time > $2
+	`
+	rows, err := s.db.Query(query, end, start)
 	if err != nil {
-		s.logg.Error("failed to list events for day", "error", err)
+		s.logg.Error("failed to list events", "error", err)
 		return nil
+	}
+	defer rows.Close()
+
+	var events []app.Event
+	for rows.Next() {
+		var event app.Event
+		if err := rows.Scan(
+			&event.ID,
+			&event.Title,
+			&event.Description,
+			&event.StartTime,
+			&event.EndTime,
+		); err != nil {
+			s.logg.Error("failed to scan event", "error", err)
+			continue
+		}
+		events = append(events, event)
 	}
 
 	s.logg.Debug("events listed for day", "start_date", start, "end_date", end, "count", len(events))
@@ -166,9 +165,45 @@ func (s *Storage) FilterByInterval(start, end time.Time) []app.Event {
 }
 
 func (s *Storage) FetchEventsToNotify() ([]app.Event, error) {
-	return make([]app.Event, 0), nil
+	query := `
+		SELECT id, title, description, start_time, end_time, notify_time
+		FROM events
+		WHERE notify_time <= NOW()
+	`
+	rows, err := s.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var events []app.Event
+	for rows.Next() {
+		var event app.Event
+		if err := rows.Scan(
+			&event.ID,
+			&event.Title,
+			&event.Description,
+			&event.StartTime,
+			&event.EndTime,
+			&event.NotifyTime,
+		); err != nil {
+			s.logg.Error("failed to scan event", "error", err)
+			continue
+		}
+		events = append(events, event)
+	}
+
+	return events, nil
 }
 
 func (s *Storage) DeleteOldEvents() error {
+	query := `DELETE FROM events
+		WHERE start_time < NOW() - INTERVAL '1 year'`
+	_, err := s.db.Exec(query)
+	if err != nil {
+		s.logg.Error("failed to delete old events", "error", err)
+		return err
+	}
+
 	return nil
 }

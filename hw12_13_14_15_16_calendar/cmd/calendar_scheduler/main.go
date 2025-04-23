@@ -115,7 +115,7 @@ func main() {
 	}()
 
 	// Запуск планировщика
-	ticker := time.NewTicker(time.Duration(cfg.App.TimeoutScheduler) * time.Second) // Периодичность выполнения
+	ticker := time.NewTicker(time.Duration(cfg.App.TimeoutScheduler) * time.Second)
 	defer ticker.Stop()
 
 	for {
@@ -124,25 +124,31 @@ func main() {
 			logg.Info("Shutting down scheduler")
 			return
 		case <-ticker.C:
-			logg.Debug("Scheduler tick")
+			logg.Info("Scheduler tick")
 
 			// Выбор событий для уведомления
 			events, err := store.FetchEventsToNotify()
 			if err != nil {
-				logg.Error("failed to fetch events", "error", err)
+				logg.Warn("failed to fetch events", "error", err)
 				continue
 			}
 
 			// Отправка уведомлений в RabbitMQ
 			for _, event := range events {
 				if err := sendNotification(channel, queue.Name, event); err != nil {
-					logg.Error("failed to send notification", "error", err)
+					logg.Warn("failed to send notification", "error", err)
+				} else {
+					logg.Debug(
+						"notification sent",
+						"event_id", event.ID,
+						"event_title", event.Title,
+					)
 				}
 			}
 
 			// Удаление старых событий
 			if err := store.DeleteOldEvents(); err != nil {
-				logg.Error("failed to delete old events", "error", err)
+				logg.Warn("failed to delete old events", "error", err)
 			}
 
 		}

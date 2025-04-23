@@ -96,9 +96,30 @@ func (s *Storage) FilterByInterval(st, fn time.Time) []app.Event {
 }
 
 func (s *Storage) FetchEventsToNotify() ([]app.Event, error) {
-	return make([]app.Event, 0), nil
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var events []app.Event
+	now := time.Now()
+	for _, event := range s.events {
+		if event.NotifyTime.Before(now) || event.NotifyTime.Equal(now) {
+			events = append(events, event)
+		}
+	}
+
+	return events, nil
 }
 
 func (s *Storage) DeleteOldEvents() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	threshold := time.Now().AddDate(-1, 0, 0)
+	for id, event := range s.events {
+		if event.StartTime.Before(threshold) {
+			delete(s.events, id)
+		}
+	}
+
 	return nil
 }
