@@ -5,6 +5,7 @@ go 1.23.0
 toolchain go1.23.4
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/go-playground/validator/v10 v10.26.0
 	github.com/google/uuid v1.6.0
 	github.com/jackc/pgx/v5 v5.7.4
@@ -13,6 +14,7 @@ require (
 	github.com/pressly/goose/v3 v3.24.2
 	github.com/spf13/pflag v1.0.6
 	github.com/spf13/viper v1.20.1
+	github.com/streadway/amqp v1.1.0
 	github.com/stretchr/testify v1.10.0
 	google.golang.org/grpc v1.71.0
 	google.golang.org/protobuf v1.36.6

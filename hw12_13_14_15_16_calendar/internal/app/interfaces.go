@@ -23,6 +23,9 @@ type Storage interface {
 
 	GetByID(eventID string) (Event, error)
 	FilterByInterval(st, fn time.Time) []Event
+
+	FetchEventsToNotify() ([]Event, error)
+	DeleteOldEvents() error
 }
 
 type Server interface {

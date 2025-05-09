@@ -5,6 +5,9 @@ app:
   # example: "http" | "grpc" | "both"
   server: "both"
 
+  # Периодичность выполнения планировщика (в секундах)
+  timeout_scheduler: 60
+
 logger:
   # example: "debug" | "info" | "warn" | "warning" | "error"
   level: "debug"
@@ -26,4 +29,12 @@ database:
   username: "root"
   password: "root"
   dbname: "calendar"
+  host: "localhost"
   port: 5433
+
+rabbitmq:
+  username: "guest"
+  password: "guest"
+  queue: "events"   # Название очереди для уведомлений
+  host: "localhost"
+  port: 5672

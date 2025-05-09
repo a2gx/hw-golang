@@ -7,12 +7,20 @@ LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%d
 
 build:
 	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./cmd/calendar
+	go build -v -o $(BIN)_scheduler -ldflags "$(LDFLAGS)" ./cmd/calendar_scheduler
+	go build -v -o $(BIN)_sender -ldflags "$(LDFLAGS)" ./cmd/calendar_sender
 
 run: build
 	$(BIN) -config $(CONFIG_FILE)
 
 start:
 	go run ./cmd/calendar -config $(CONFIG_FILE)
+
+start-scheduler:
+	go run ./cmd/calendar_scheduler -config $(CONFIG_FILE)
+
+start-sender:
+	go run ./cmd/calendar_sender -config $(CONFIG_FILE)
 
 start-grpc:
 	go run ./cmd/grpc_client -config $(CONFIG_FILE)
@@ -57,4 +65,4 @@ generate:
 dc-up:
 	docker-compose up --build
 
-.PHONY: build run start start-grpc-client start-migration-up start-migration-down start-migration-create start-initialize build-img run-img version test lint proto-gen dc-up
+.PHONY: build run start start-scheduler start-sender start-grpc start-migration start-migration-up start-migration-down start-migration-new build-img run-img version test lint generate dc-up
