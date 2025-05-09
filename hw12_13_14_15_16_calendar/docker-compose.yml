@@ -10,7 +10,7 @@ services:
       POSTGRES_PASSWORD: root
       POSTGRES_DB: calendar
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -33,6 +33,24 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+
+  calendar:
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile
+    container_name: calendar_app
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8085:8085"
+      - "50055:50055"
+    environment:
+      CONFIG_FILE: /etc/calendar/config.yaml
+    volumes:
+      - ./configs:/etc/calendar:ro
 
 volumes:
   postgres_data:
