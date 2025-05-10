@@ -1,0 +1,75 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: calendar_postgres_test
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: calendar_test
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data_test:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U root -d calendar_test" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: calendar_rabbitmq_test
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  migration:
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile_migration
+    container_name: calendar_migration_test
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./configs:/etc/calendar:ro
+      - ./migrations:/migrations:ro
+    environment:
+      DATABASE_DBNAME: calendar_test
+      DATABASE_HOST: calendar_postgres_test
+    restart: on-failure
+
+  calendar:
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile
+    container_name: calendar_app_test
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migration:
+        condition: service_completed_successfully
+    ports:
+      - "8088:8088"
+      - "50056:50055"
+    volumes:
+      - ./configs:/etc/calendar:ro
+    environment:
+      APP_SERVER: "http"
+      DATABASE_DBNAME: calendar_test
+      DATABASE_HOST: calendar_postgres_test
+      SERVER_HTTP_ADDR: "0.0.0.0:8088"
+
+volumes:
+  postgres_data_test:
