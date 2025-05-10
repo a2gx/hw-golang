@@ -62,7 +62,11 @@ generate:
 		--go-grpc_out=. \
 		--go-grpc_opt=paths=source_relative api/calendar.proto
 
-dc-up:
-	docker-compose up --build
+up:
+	docker-compose up --build #-d
+down:
+	docker-compose down
+logs:
+	docker-compose logs -f
 
-.PHONY: build run start start-scheduler start-sender start-grpc start-migration start-migration-up start-migration-down start-migration-new build-img run-img version test lint generate dc-up
+.PHONY: build run start start-scheduler start-sender start-grpc start-migration start-migration-up start-migration-down start-migration-new build-img run-img version test lint generate up down logs

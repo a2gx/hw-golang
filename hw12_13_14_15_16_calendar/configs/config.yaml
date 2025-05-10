@@ -36,5 +36,5 @@ rabbitmq:
   username: "guest"
   password: "guest"
   queue: "events"   # Название очереди для уведомлений
-  host: "localhost"
+  host: "calendar_rabbitmq"
   port: 5672
