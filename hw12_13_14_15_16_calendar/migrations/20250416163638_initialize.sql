@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE IF NOT EXISTS events
+CREATE TABLE events
 (
     id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     title       TEXT      NOT NULL,
@@ -13,5 +13,5 @@ CREATE TABLE IF NOT EXISTS events
 
 -- +goose Down
 -- +goose StatementBegin
-DROP TABLE IF EXISTS events;
+DROP TABLE events;
 -- +goose StatementEnd

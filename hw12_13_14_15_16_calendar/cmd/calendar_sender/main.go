@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"log"
 	"os"
 	"os/signal"
@@ -13,6 +14,8 @@ import (
 )
 
 func main() {
+	flag.Parse()
+
 	// Инициализация конфигурации
 	cfg, err := NewConfig()
 	if err != nil {
@@ -42,6 +45,22 @@ func main() {
 		return
 	}
 	defer channel.Close()
+
+	// Создание очереди
+	// на случай если контейнер `sender` запустится раньше контейнера `scheduler`
+	// TODO можно перенести в `pkg` или `internal`
+	_, err = channel.QueueDeclare(
+		cfg.RabbitMQ.Queue, // имя очереди
+		true,               // durable
+		false,              // auto-delete
+		false,              // exclusive
+		false,              // no-wait
+		nil,                // arguments
+	)
+	if err != nil {
+		logg.Error("failed to declare a queue", "error", err)
+		return
+	}
 
 	// Подписка на очередь
 	msgs, err := channel.Consume(
@@ -74,7 +93,7 @@ func main() {
 				continue
 			}
 
-			// Логируем уведомление
+			// Логируем уведомление - типа отправили уведомление
 			logg.Info(
 				"notification received",
 				"event_id", event.ID,

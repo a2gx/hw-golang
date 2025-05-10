@@ -28,10 +28,11 @@ services:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
     healthcheck:
-      test: ["CMD-SHELL", "rabbitmq-diagnostics -q ping"]
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
       interval: 5s
       timeout: 5s
       retries: 5
+      start_period: 15s
 
   migration:
     build:
@@ -41,8 +42,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    environment:
-      CONFIG_FILE: /etc/calendar/config.yaml
     volumes:
       - ./configs:/etc/calendar:ro
       - ./migrations:/migrations:ro
@@ -63,10 +62,41 @@ services:
     ports:
       - "8085:8085"
       - "50055:50055"
-    environment:
-      CONFIG_FILE: /etc/calendar/config.yaml
     volumes:
       - ./configs:/etc/calendar:ro
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile_scheduler
+    container_name: calendar_scheduler
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migration:
+        condition: service_completed_successfully
+    volumes:
+      - ./configs:/etc/calendar:ro
+    restart: on-failure
+
+  sender:
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile_sender
+    container_name: calendar_sender
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      migration:
+        condition: service_completed_successfully
+    volumes:
+      - ./configs:/etc/calendar:ro
+    # Нет публикации портов, так как это внутренний сервис
+    restart: on-failure
 
 volumes:
   postgres_data:
