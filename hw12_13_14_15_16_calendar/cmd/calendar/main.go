@@ -48,7 +48,6 @@ func main() {
 		return
 	}
 	if err := store.Connect(); err != nil {
-		logg.Error("failed to connect storage", "error", err)
 		return
 	}
 
@@ -104,6 +103,7 @@ func main() {
 
 	// Запуск сервера
 	if err := srv.Start(ctx); err != nil {
+		logg.Error("server start failed", "error", err)
 		shutdownErr <- err
 	}
 

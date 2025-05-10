@@ -19,6 +19,7 @@ type Config struct {
 		Username string `mapstructure:"username"`
 		Password string `mapstructure:"password"`
 		Dbname   string `mapstructure:"dbname"`
+		Host     string `mapstructure:"host"`
 		Port     int    `mapstructure:"port"`
 	} `mapstructure:"database"`
 
@@ -51,7 +52,7 @@ func NewConfig() (*Config, error) {
 		instance.Database.Username,
 		instance.Database.Password,
 		instance.Database.Dbname,
-		"localhost",
+		instance.Database.Host,
 		instance.Database.Port,
 	)
 

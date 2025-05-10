@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -40,6 +41,8 @@ func sendNotification(channel *amqp.Channel, queueName string, event app.Event) 
 }
 
 func main() {
+	flag.Parse()
+
 	// Инициализация конфигурации
 	cfg, err := NewConfig()
 	if err != nil {

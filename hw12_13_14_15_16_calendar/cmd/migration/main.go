@@ -36,7 +36,7 @@ func main() {
 	// Открываем соединение с базой данных
 	db, err := goose.OpenDBWithDriver("postgres", cfg.DatabaseDNS)
 	if err != nil {
-		logg.Error("Не удалось подключиться к базе данных: " + err.Error())
+		logg.Error("failed to connect to database: " + err.Error())
 		exitCode = 1
 		return
 	}
@@ -45,38 +45,36 @@ func main() {
 	switch cfg.MigrationCommand {
 	case "up":
 		if err := goose.Up(db, cfg.MigrationDir); err != nil {
-			logg.Error("Ошибка при применении миграций: " + err.Error())
+			logg.Error("failed to apply migrations: " + err.Error())
 			exitCode = 1
 			return
 		}
 	case "down":
 		if err := goose.Down(db, cfg.MigrationDir); err != nil {
-			logg.Error("Ошибка при откате миграций: " + err.Error())
+			logg.Error("failed to rollback migrations: " + err.Error())
 			exitCode = 1
 			return
 		}
 	case "status":
 		if err := goose.Status(db, cfg.MigrationDir); err != nil {
-			logg.Error("Ошибка при получении статуса миграций: " + err.Error())
+			logg.Error("failed to get migration status: " + err.Error())
 			exitCode = 1
 			return
 		}
 	case "create":
 		if cfg.MigrationName == "" {
-			logg.Error("Для команды create необходимо указать имя миграции с помощью флага -name")
+			logg.Error("migration name is required for create command (use -name flag)")
 			exitCode = 1
 			return
 		}
 		if err := goose.Create(nil, cfg.MigrationDir, cfg.MigrationName, "sql"); err != nil {
-			logg.Error("Ошибка при создании новой миграции: " + err.Error())
+			logg.Error("failed to create new migration: " + err.Error())
 			exitCode = 1
 			return
 		}
 	default:
-		logg.Error("Неизвестная команда: " + cfg.MigrationCommand)
+		logg.Error("unknown command: " + cfg.MigrationCommand)
 		exitCode = 1
 		return
 	}
-
-	logg.Info("Миграции успешно выполнены")
 }
