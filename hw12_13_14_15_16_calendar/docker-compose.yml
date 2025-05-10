@@ -22,8 +22,8 @@ services:
     image: rabbitmq:3-management
     container_name: calendar_rabbitmq
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - "5672:5672" # Порт для AMQP-протокола
+      - "15672:15672" # Порт для веб-интерфейса управления
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
@@ -79,7 +79,6 @@ services:
         condition: service_completed_successfully
     volumes:
       - ./configs:/etc/calendar:ro
-    restart: on-failure
 
   sender:
     build:
@@ -95,8 +94,6 @@ services:
         condition: service_completed_successfully
     volumes:
       - ./configs:/etc/calendar:ro
-    # Нет публикации портов, так как это внутренний сервис
-    restart: on-failure
 
 volumes:
   postgres_data:
