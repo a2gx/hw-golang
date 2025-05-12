@@ -51,7 +51,9 @@ test:
 
 integration-tests:
 	docker-compose -f docker-compose.yml -f docker-compose.tests.yml down -v
-	docker-compose --env-file .env -f docker-compose.yml -f docker-compose.tests.yml up --build
+	docker-compose --env-file .env -f docker-compose.yml -f docker-compose.tests.yml up --build -d
+	docker logs -f integration_tests
+	exit $$(docker wait integration_tests)
 
 install-lint-deps:
 	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.63.4
@@ -67,7 +69,7 @@ generate:
 		--go-grpc_opt=paths=source_relative api/calendar.proto
 
 up:
-	docker-compose --env-file .env up --build #-d
+	docker-compose --env-file .env up --build -d
 down:
 	docker-compose down
 logs:
