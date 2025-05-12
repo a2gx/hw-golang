@@ -13,6 +13,9 @@ build:
 run: build
 	$(BIN) -config $(CONFIG_FILE)
 
+version: build
+	$(BIN) version
+
 start:
 	go run ./cmd/calendar -config $(CONFIG_FILE)
 
@@ -33,18 +36,6 @@ start-migration-down:
 
 start-migration-new:
 	go run ./cmd/migration -config $(CONFIG_FILE) -command=create -name=new
-
-build-img:
-	docker build \
-		--build-arg=LDFLAGS="$(LDFLAGS)" \
-		-t $(DOCKER_IMG) \
-		-f build/Dockerfile .
-
-run-img: build-img
-	docker run $(DOCKER_IMG)
-
-version: build
-	$(BIN) version
 
 test:
 	go test -race ./internal/... ./pkg/...
@@ -75,4 +66,4 @@ down:
 logs:
 	docker-compose logs -f
 
-.PHONY: build run start start-scheduler start-sender start-grpc start-migration start-migration-up start-migration-down start-migration-new build-img run-img version test integration-tests lint generate up down logs
+.PHONY: build run start version start-scheduler start-sender start-grpc start-migration start-migration-up start-migration-down start-migration-new test integration-tests lint generate up down logs
