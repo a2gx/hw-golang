@@ -66,7 +66,7 @@ generate:
 		--go-grpc_opt=paths=source_relative api/calendar.proto
 
 up:
-	docker-compose up --build #-d
+	docker-compose --env-file .env up --build #-d
 down:
 	docker-compose down
 logs:

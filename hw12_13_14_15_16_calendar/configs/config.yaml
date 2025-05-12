@@ -22,19 +22,19 @@ logger:
   add_source: true
 
 server:
-  http_addr: "0.0.0.0:8085"
+  http_addr: "0.0.0.0:8080"
   grpc_addr: "0.0.0.0:50055"
 
 database:
   username: "root"
   password: "root"
   dbname: "calendar"
-  host: "calendar_postgres"
+  host: "localhost"
   port: 5432
 
 rabbitmq:
   username: "guest"
   password: "guest"
   queue: "events"
-  host: "calendar_rabbitmq"
+  host: "localhost"
   port: 5672

@@ -1,19 +1,18 @@
 services:
-
   postgres:
     image: postgres:15
     container_name: calendar_postgres
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
-      POSTGRES_DB: calendar
+      POSTGRES_DB: ${PG_DATABASE}
       POSTGRES_INITDB_ARGS: "--auth-host=md5"
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U root -d calendar" ]
+      test: [ "CMD-SHELL", "pg_isready -U root -d ${PG_DATABASE}" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -22,8 +21,7 @@ services:
     image: rabbitmq:3-management
     container_name: calendar_rabbitmq
     ports:
-      - "5672:5672" # Порт для AMQP-протокола
-      - "15672:15672" # Порт для веб-интерфейса управления
+      - "5672:5672"
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
@@ -42,6 +40,9 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    environment:
+      DATABASE_DBNAME: ${PG_DATABASE}
+      DATABASE_HOST: calendar_postgres
     volumes:
       - ./configs:/etc/calendar:ro
       - ./migrations:/migrations:ro
@@ -59,11 +60,21 @@ services:
         condition: service_healthy
       migration:
         condition: service_completed_successfully
+    environment:
+      DATABASE_DBNAME: ${PG_DATABASE}
+      DATABASE_HOST: calendar_postgres
+      RABBITMQ_HOST: calendar_rabbitmq
     ports:
-      - "8085:8085"
+      - "8080:8080"
       - "50055:50055"
     volumes:
       - ./configs:/etc/calendar:ro
+    healthcheck:
+      test: [ "CMD-SHELL", "curl -f http://calendar_app:8080/ping" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
 
   scheduler:
     build:
@@ -77,6 +88,10 @@ services:
         condition: service_healthy
       migration:
         condition: service_completed_successfully
+    environment:
+      DATABASE_DBNAME: ${PG_DATABASE}
+      DATABASE_HOST: calendar_postgres
+      RABBITMQ_HOST: calendar_rabbitmq
     volumes:
       - ./configs:/etc/calendar:ro
 
@@ -92,6 +107,8 @@ services:
         condition: service_healthy
       migration:
         condition: service_completed_successfully
+    environment:
+      RABBITMQ_HOST: calendar_rabbitmq
     volumes:
       - ./configs:/etc/calendar:ro
 
