@@ -46,7 +46,6 @@ services:
     volumes:
       - ./configs:/etc/calendar:ro
       - ./migrations:/migrations:ro
-    restart: on-failure
 
   calendar:
     build:
@@ -70,7 +69,7 @@ services:
     volumes:
       - ./configs:/etc/calendar:ro
     healthcheck:
-      test: [ "CMD-SHELL", "curl -f http://calendar_app:8080/ping" ]
+      test: [ "CMD-SHELL", "curl -f http://127.0.0.1:8080/ping || exit 1" ]
       interval: 5s
       timeout: 5s
       retries: 5

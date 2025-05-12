@@ -19,5 +19,16 @@ services:
     environment:
       DATABASE_DBNAME: "${PG_DATABASE}_tests"
 
+  tests:
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile_tests
+    container_name: integration_tests
+    depends_on:
+      calendar:
+        condition: service_healthy
+    networks:
+      - default
+
 volumes:
   postgres_tests:

@@ -51,7 +51,7 @@ test:
 
 integration-tests:
 	docker-compose -f docker-compose.yml -f docker-compose.tests.yml down -v
-	docker-compose --env-file .env -f docker-compose.yml -f docker-compose.tests.yml up --build --renew-anon-volumes
+	docker-compose --env-file .env -f docker-compose.yml -f docker-compose.tests.yml up --build
 
 install-lint-deps:
 	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(shell go env GOPATH)/bin v1.63.4
