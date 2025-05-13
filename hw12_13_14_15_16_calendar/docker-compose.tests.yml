@@ -1,0 +1,34 @@
+services:
+  postgres:
+    environment:
+      POSTGRES_DB: "${PG_DATABASE}_tests"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U root -d ${PG_DATABASE}_tests" ]
+    volumes:
+      - postgres_tests:/var/lib/postgresql/data
+
+  migration:
+    environment:
+      DATABASE_DBNAME: "${PG_DATABASE}_tests"
+
+  calendar:
+    environment:
+      DATABASE_DBNAME: "${PG_DATABASE}_tests"
+
+  scheduler:
+    environment:
+      DATABASE_DBNAME: "${PG_DATABASE}_tests"
+
+  tests:
+    build:
+      context: .
+      dockerfile: ./build/Dockerfile_tests
+    container_name: integration_tests
+    depends_on:
+      calendar:
+        condition: service_healthy
+    networks:
+      - default
+
+volumes:
+  postgres_tests:

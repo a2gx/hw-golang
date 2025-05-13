@@ -25,6 +25,7 @@ func New(addr string, logg *logger.Logger, app *app.App) *Server {
 
 	mux.HandleFunc("/ping", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("pong"))
 	})
 
 	mux.HandleFunc("POST /event", h.CreateEvent)
@@ -63,6 +64,7 @@ func (s *Server) Start(ctx context.Context) error {
 
 	select {
 	case err := <-errCh:
+		s.logg.Error("HTTP server failed to start", "error", err)
 		return fmt.Errorf("failed HTTP to serve: %w", err)
 	case <-ctx.Done():
 		return nil

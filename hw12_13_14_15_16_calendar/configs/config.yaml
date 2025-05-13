@@ -22,19 +22,19 @@ logger:
   add_source: true
 
 server:
-  http_addr: "localhost:8085"
-  grpc_addr: "localhost:50055"
+  http_addr: "0.0.0.0:8080"
+  grpc_addr: "0.0.0.0:50055"
 
 database:
   username: "root"
   password: "root"
   dbname: "calendar"
   host: "localhost"
-  port: 5433
+  port: 5432
 
 rabbitmq:
   username: "guest"
   password: "guest"
-  queue: "events"   # Название очереди для уведомлений
+  queue: "events"
   host: "localhost"
   port: 5672

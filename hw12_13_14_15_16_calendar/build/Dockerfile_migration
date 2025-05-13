@@ -1,7 +1,7 @@
 # Собираем в гошке
 FROM golang:1.23 as build
 
-ENV BIN_FILE /opt/calendar/calendar-app
+ENV BIN_FILE /opt/calendar/calendar-migration
 ENV CODE_DIR /go/src/
 
 WORKDIR ${CODE_DIR}
@@ -18,21 +18,16 @@ COPY . ${CODE_DIR}
 ARG LDFLAGS
 RUN CGO_ENABLED=0 go build \
         -ldflags "$LDFLAGS" \
-        -o ${BIN_FILE} cmd/calendar/*
+        -o ${BIN_FILE} cmd/migration/*
 
 # На выходе тонкий образ
 FROM alpine:3.9
 
-LABEL ORGANIZATION="OTUS Online Education"
-LABEL SERVICE="calendar"
-LABEL MAINTAINERS="student@otus.ru"
-
-RUN apk --no-cache add curl
-
-ENV BIN_FILE "/opt/calendar/calendar-app"
+ENV BIN_FILE "/opt/calendar/calendar-migration"
 COPY --from=build ${BIN_FILE} ${BIN_FILE}
 
-ENV CONFIG_FILE /etc/calendar/config.yaml
-COPY ./configs/config.yaml ${CONFIG_FILE}
+# Устанавливаем директории для конфигураций и миграций как volumes
+VOLUME ["/etc/calendar", "/migrations"]
 
-CMD ${BIN_FILE} -config ${CONFIG_FILE}
+# Заменяем CMD на ENTRYPOINT для более надежного запуска
+ENTRYPOINT ["/opt/calendar/calendar-migration", "-config", "/etc/calendar/config.yaml", "-command=up"]
